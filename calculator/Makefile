@@ -7,6 +7,7 @@ CCFLAGS = -pthread -m64
 
 SRCDIR = ./src
 
+_dummy := $(shell mkdir -p lib)
 LDIR = ./lib
 INCLUDEDIR = -I. -I./include
 
