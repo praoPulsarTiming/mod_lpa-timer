@@ -2,11 +2,12 @@
 
 ИНСТРУКЦИИ ДЛЯ МОДУЛЯ ОБРАБОТКИ ДАННЫХ И ВЫЧИСЛЕНИЙ "calculator"
 
->g++ getFreqResponse.cc
+>cd calculator
+>make
 
-отредактировать конфиг timer_0301.cfg
+отредактировать (можно переименовать) конфиг timer_0656.cfg
 
->./a.out -f timer_0301.cfg
+>./run-timer.exe -f timer_0656.cfg
 
 
 ИНСТРУКЦИИ ДЛЯ ИНТЕРФЕЙСА "interface"
