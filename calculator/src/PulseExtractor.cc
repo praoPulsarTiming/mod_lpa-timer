@@ -60,9 +60,9 @@ int PulseExtractor::compensateDM()
       //add normalisation here
       float bandMean=fBaseRun->GetFreqResponse(y);
 
-      float normFactor;
-      if (bandMean==0) normFactor=1;
-      else normFactor=pow(bandMean,-1);
+      float normFactor=1;
+//      if (bandMean==0) normFactor=1;
+//     else normFactor=pow(bandMean,-1);
 
   
       float bico1=normFactor*fBaseRun->GetBandSignal((fBaseRun->GetNBands()-1)-y)->GetSignal(int(floor(i+delta))%fBaseRun->GetNPoints());
@@ -139,12 +139,12 @@ int PulseExtractor::sumPeriods()
   }
 }
 
-int PulseExtractor::PrintSumProfile(std::string filename)
+int PulseExtractor::PrintSumProfile(std::string dirname)
 {
   std::cout<<"print profile"<<std::endl;
   std::ofstream sumProfileStream;
   char tmp[100];
-  sprintf(tmp,"sumProfile_%s.dat",fBaseRun->GetRunID().c_str());
+  sprintf(tmp,"%s/sumProfile_%s.dat",dirname.c_str(),fBaseRun->GetRunID().c_str());
   sumProfileStream.open(tmp);
   sumProfileStream<<"### HEADER "<<"\n";
   sumProfileStream<<"telcode: "<<fSumProfile.telcode<<"\n";

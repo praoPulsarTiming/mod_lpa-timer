@@ -189,6 +189,13 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   for (int i=0; i<512; i++){
     fFreqResponse.push_back(fPerBandSignal[i].GetSignalMean(0,1000000));
   }
+
+  for (int i=0; i<512; i++){
+    fFreqResponse.push_back(fPerBandSignal[i].GetSignalMean(0,1000000));
+    for (int j=0; j<fNPoints; j++){
+      fPerBandSignal[iFreq].SetSignal(j,fPerBandSignal[iFreq].GetSignal(j)*pow(fFreqResponse[i],-1));
+    }
+  }
   
   data.close();
   delete fileContents;
