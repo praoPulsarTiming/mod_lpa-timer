@@ -239,21 +239,6 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   data.close();
   delete fileContents;
   delete buffer;
-  std::ofstream freqResInfo;
-  char tmp[100];
-  sprintf(tmp,"fftOutput_%s.dat",runID.c_str());
-  freqResInfo.open(tmp);
-  freqResInfo<<"period: "<<fPeriod<<"\n";
-  freqResInfo<<"tau: "<<fTau<<"\n";
-  freqResInfo<<"date: "<<fDay<<"/"<<fMonth<<"/"<<fYear<<"\n";
-  freqResInfo<<"time: "<<fHour<<":"<<fMinute<<":"<<fSecond<<"\n";
-  freqResInfo<<"frequence response: "<<"\n";
-  //  freqResInfo<<"fast fourier image [bin center (Hz)     power]:"<<"\n";
-  for (int i=0; i<512; i++){
-    float freq=fFreqFirst+(fFreqLast-fFreqLast)/512;
-    freqResInfo<<i<<"      "<<freq<<"      "<<fFreqResponse[i]<<std::endl;
-  }
-  freqResInfo.close();
   std::cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"<<std::endl;
   return 0;
 
