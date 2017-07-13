@@ -89,11 +89,11 @@ int main(int argc, char *argv[])
     // получение структуры суммарного импульса
     SumProfile finPulse=pulse.GetSumProfile();
     // распечатать суммарный импульс в файл
-    pulse.PrintSumProfile("examples");
+    pulse.PrintSumProfile(output_dir.c_str());
     //  распечатать суммарные импульсы по частотам в файл
-    pulse.PrintPerBandSumProfile("examples");
+    pulse.PrintPerBandSumProfile(output_dir.c_str());
     //  распечатать АЧХ в файл
-    pulse.PrintFrequencyResponse("examples");
+    pulse.PrintFrequencyResponse(output_dir.c_str());
 
     // получить суммарный импульс в виде вектора
     //std::vector<float> sumpuls=pulse.GetSumPeriodsVec();
