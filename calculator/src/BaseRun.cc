@@ -22,6 +22,35 @@ double readNumber(char* buffer, int iStart, int N0, int N1)
   return returnValue;
 }
 
+double readNumberMod(char* buffer, int iStart, int N)
+{
+  std::vector<int> integer;
+  std::vector<int> decimal;
+  bool isInt=true;
+  bool isDec=false;
+  for (int i=0; i<N; i++){
+    if (chToNum(buffer[iStart+i])==-2) {
+      isDec=true;
+      isInt=false;
+      continue;
+    }
+    if (chToNum(buffer[iStart+i])<0) continue;
+    if (isInt) integer.push_back(chToNum(buffer[iStart+i]));
+    if (isDec) decimal.push_back(chToNum(buffer[iStart+i]));
+  }
+  float number=0;
+  for (int i=0; i<integer.size(); i++){
+    number += pow(10,i)*integer[integer.size()-1-i];
+  }
+  float dec=0;
+  for (int i=0; i<decimal.size(); i++){
+    dec += pow(10,-i-1)*decimal[i];
+  }
+  number+=dec;
+  return number;
+}
+
+
 float pulseToFloat(unsigned int pulse, float tau)
 {
   float exp, spectr;
@@ -55,8 +84,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   std::ifstream data(fname.c_str(),std::ios::binary|std::ios::in);
   
   std::cout<<"READING RAW RUN "<<runID<<"    path: "<<fname<<std::endl;
-
-  //read header
+   //read header
   int length = 40; 
   char * buffer = new char [length];
   int sizeHeader;
@@ -76,8 +104,12 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       //	}
       
       //read period (in ms)
-      if (k==4)	fPeriod=1000*readNumber(buffer,13,1,11);
+      if (k==4)	fPeriod=1000*readNumberMod(buffer,13,11);
 
+      if (k==9) {
+	fDM=readNumberMod(buffer,13,7);
+      }
+      
       //covert buffer to a number
       //read nPeriods and nBinsPerPeriod
       int number;
@@ -173,7 +205,9 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       float ampl=pulseToFloat(number,fTau);
       int iFreq=(((ipos-sizeHeader)/lengthData-1)%512);
       if (iFreq!=513) {
-	fPerBandSignal[iFreq].SetSignal(iPoint,ampl);
+	//std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<
+	fPerBandSignal[iFreq].SetSignal(iPointAbs,ampl);
+	//	std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<"    "<<fPerBandSignal[iFreq].GetSignal(iPointAbs)<<std::endl;
       }
       if (iFreq==511){
 	iPoint++;
@@ -184,16 +218,21 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	iPointAbs++;
       }	
     }
-
+  for (int i=0; i<fNPoints; i++){
+    //  std::cout<<"test: "<<i<<"  "<<fPerBandSignal[18].GetSignal(i)<<std::endl;
+  }
   
   for (int i=0; i<512; i++){
     fFreqResponse.push_back(fPerBandSignal[i].GetSignalMean(0,1000000));
+    fFreqResponseMedian.push_back(fPerBandSignal[i].GetSignalMedian(0,1000000));
   }
 
   for (int i=0; i<512; i++){
     fFreqResponse.push_back(fPerBandSignal[i].GetSignalMean(0,1000000));
     for (int j=0; j<fNPoints; j++){
-      fPerBandSignal[iFreq].SetSignal(j,fPerBandSignal[iFreq].GetSignal(j)*pow(fFreqResponse[i],-1));
+      //std::cout<<i<<"    "<<j<<"     "<<fPerBandSignal[i].GetSignal(j)<<"    "<<pow(fFreqResponse[i],-1)<<"    "<<fPerBandSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1)<<"    "<<fFreqResponseMedian[i]<<std::endl;
+      fPerBandSignal[i].SetSignal(j,fPerBandSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1));
+      //fPerBandSignal[i].SetSignal(j,fPerBandSignal[i].GetSignal(j)-fFreqResponseMedian[i]);
     }
   }
   

@@ -12,6 +12,7 @@ class SignalContainer
   ~SignalContainer();
 
   float GetSignalMean(int t0, int t1);
+  float GetSignalMedian(int t0, int t1);
   float GetSignalVariance(int t0, int t1);
 
   float GetTime(int iBin);

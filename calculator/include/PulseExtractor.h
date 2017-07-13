@@ -1,5 +1,5 @@
 #include "BaseRun.h"
-
+#include <stdlib.h>
 struct SumProfile {
   
   std::string telcode; // п╨п╬п╢ я┌п╣п╩п╣я│п╨п╬п©п╟, п©п╬ я┐п╪п╬п╩я┤п╟п╫п╦я▌ bsa1 п╡п╬п╥п╪п╬п╤п╫я▀п╣ п╬п©я├п╦п╦ bsa2, bsa3, Klz64
@@ -36,35 +36,47 @@ struct SumProfile {
   
 };
 
+//  класс для обработки сеансов
+//  все параметры сеанса считываются в конструкторе
 class PulseExtractor : BaseRun
 {
  public:
   PulseExtractor();
-  PulseExtractor(BaseRun* run, float DM);
+  PulseExtractor(BaseRun* run); // конструктор принимает ссылку на класс сеанса
   ~PulseExtractor();
   
-  int SetBaseRun(BaseRun* br) {fBaseRun=br;}
-  int SetDM(float DM) {fDM=DM;}
+  int SetBaseRun(BaseRun* br) {fBaseRun=br;} // можно задать ссылку на сеанс
+  int SetDM(float DM) {fDM=DM;} // можно утановить произвольную DM 
   
-  int DoCompensation();
-  int SumPeriods();
+  int DoCompensation(); // функция проводит компенсацию запаздывания, время всегда приводится к самой высокой частоте 112.084, если ранее было проведено суммирование периодов для отдельных частот, исполуются свернутые профили, иначе полные профили для каждой частоты
+  int SumPeriods();   // функция суммирует периоды в компенсированных данных, если суммирование было проведено ранее для каждой из частот, функция ничего не меняет, только заполняет финальный объект SumProfile
+  int SumPerBandPeriods(); // функция суммирует периоды для каждой из частот
   
   float GetDM();
-  int PrintSumProfile(std::string outFile);
-  SumProfile GetSumProfile() {return fSumProfile;}
+  int PrintFrequencyResponse(std::string outdir); // распечатать АЧХ (средний сигнал на частоте) в файл с именем outdir/<номер сеанса>.fr
+  int PrintSumProfile(std::string outdir);  // распечатать суммарный профиль в файл с именем outdir/<номер сеанса>.prf
+  int PrintPerBandSumProfile(std::string outdir); // распечатать суммарный профиль  для каждой из частот в файл с именем outdir/bands_<номер сеанса>.prf
+  SumProfile GetSumProfile() {return fSumProfile;} // получить структуру, описанную выше
 
-  int ReadMask(std::string fname);
-  int SetBandMask(std::vector<float> mask) {fBandMask=mask;}
+  std::vector<float> GetSumPeriodsVec(); // получить суммарный профиль в виде вектора
+  
+  int ReadMask(std::string fname); // считать маску частот
+  int SetBandMask(std::vector<float> mask) {fBandMask=mask;} // задать маску
 
  private:
   BaseRun* fBaseRun;
   float fDM;
   SignalContainer fCompensatedSignal;
   SignalContainer fCompensatedSignalSum;
+  std::vector<SignalContainer> fCompensatedSignalBandSum;
   SumProfile fSumProfile;
   int compensateDM();
   int sumPeriods();
+  int sumPerBandPeriods();
   int fillSumProfile();
-  
+  int printHeader(std::ofstream* str);
+      
   std::vector<float> fBandMask;
+
+  bool fIsSumPerBandAvailable;
 };

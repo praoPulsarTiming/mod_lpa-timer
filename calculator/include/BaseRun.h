@@ -21,7 +21,7 @@ class BaseRun
   
   //getters:
   std::string GetTelcode() {return fTelcode;}
-  std::string GetObscode() {return fTelcode;}
+  std::string GetObscode() {return fObscode;}
   std::string GetRtype() {return fRtype;}
   std::string GetPsrname() {return fPsrname;}
   std::string GetDatatype() {return fDatatype;}
@@ -51,6 +51,7 @@ class BaseRun
   float GetWLFirst() {return fWLFirst;}
   float GetWLLast() {return fWLLast;}
   float GetTau() {return fTau;}
+  float GetDM() {return fDM;}
 
   int GetNPoints() {return fNPoints;}
   float GetDuration() {return fDuration;}
@@ -96,9 +97,11 @@ class BaseRun
   int fMinute;
   int fSecond;
   int fNsec;
+  float fDM;
 
   std::string fRunID;
   
   std::vector<SignalContainer> fPerBandSignal;
   std::vector<float> fFreqResponse;
+  std::vector<float> fFreqResponseMedian;
 };

@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
   std::vector<std::string> runID;
   flist>>confParam;
   while(confParam!="runs:"){		 
-    std::cout<<confParam<<std::endl;
+    //    std::cout<<confParam<<std::endl;
     if (confParam=="inputDir") flist>>rawdata_dir;
     else if (confParam=="outputDir") flist>>output_dir;
     else if (confParam=="startFileNumber") flist>>startFileNumber;
@@ -57,22 +57,46 @@ int main(int argc, char *argv[])
     runID.push_back(rID);
   }
 
+  // создаем контейнер для данных сеанса
   BaseRun br;
   //loop over files
+  
   for (int iPack=0; iPack<floor(nFiles); iPack++){
 
+    // считываем данные сеанса
     br.ReadRAWData(runID[iPack], rawdata_dir, output_dir);
 
-    PulseExtractor pulse(&br, 13.977);
-    
+    // создаем объект класса для обработки
+    PulseExtractor pulse(&br);
+
+    //  считываем маску
     pulse.ReadMask("examples/bandMask.dat");
+
+    // фильтры на данный момент отсутствуют (13.07.17)
     //   pulse.FrequencyFilter(0.5);
     //   pulse.SpikeFilter(0.5);
+
+    // суммируем периоды для каждой из частот
+    pulse.SumPerBandPeriods();
+    // компенсируем dm 
     pulse.DoCompensation();
+    // суммируем периоды для компенсированных данных
     pulse.SumPeriods();
-    
+
+    // далее получаем данные
+    // получение структуры суммарного импульса
     SumProfile finPulse=pulse.GetSumProfile();
-    pulse.PrintSumProfile("examples/output.txt");
+    // распечатать суммарный импульс в файл
+    pulse.PrintSumProfile("examples");
+    // распечатать суммарные импульсы по частотам в файл
+    pulse.PrintPerBandSumProfile("examples");
+    // распечатать АЧХ в файл
+    pulse.PrintFrequencyResponse("examples");
+
+    // получить суммарный импульс в виде массива
+    //float* sumpuls=pulse.GetSumPeriods();
+    // в виде вектора
+    //std::vector<float> sumpuls=pulse.GetSumPeriodsVec();
   }
 
   return 0;
