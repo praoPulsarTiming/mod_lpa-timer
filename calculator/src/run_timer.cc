@@ -1,6 +1,8 @@
 //#include "BaseRun.h"
 #include "PulseExtractor.h"
 
+//СЮДА МОЖНО ВСТАВЛЯТЬ ФУНКЦИИ ИЛИ ИНКЛЮДЫ С НИМИ 
+
 int main(int argc, char *argv[])
 {
   //read input with options
@@ -95,6 +97,10 @@ int main(int argc, char *argv[])
 
     // получить суммарный импульс в виде вектора
     //std::vector<float> sumpuls=pulse.GetSumPeriodsVec();
+
+
+    // СЮДА МОЖНО ДОБАВЛЯТЬ КОД ДЛЯ КРОСС-КОРРЕЛЯЦИИ
+
   }
 
   return 0;
