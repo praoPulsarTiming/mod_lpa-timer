@@ -71,10 +71,15 @@ int PulseExtractor::compensateDM()
       float normFactor=1;
 //      if (bandMean==0) normFactor=1;
 //     else normFactor=pow(bandMean,-1);
-
-  
-      float bico1=normFactor*fBaseRun->GetBandSignal((fBaseRun->GetNBands()-1)-y)->GetSignal(int(floor(i+delta))%npoints);
-      float bico2=normFactor*fBaseRun->GetBandSignal((fBaseRun->GetNBands()-1)-y)->GetSignal(int((floor(i+delta)+1))%npoints);
+      float bico1, bico2;
+      if (!fIsSumPerBandAvailable){
+	bico1=normFactor*fBaseRun->GetBandSignal((fBaseRun->GetNBands()-1)-y)->GetSignal(int(floor(i+delta))%npoints);
+	bico2=normFactor*fBaseRun->GetBandSignal((fBaseRun->GetNBands()-1)-y)->GetSignal(int((floor(i+delta)+1))%npoints);
+      }
+      else {
+	bico1=normFactor*fCompensatedSignalBandSum[(fBaseRun->GetNBands()-1)-y].GetSignal(int(floor(i+delta))%npoints);
+	bico2=normFactor*fCompensatedSignalBandSum[(fBaseRun->GetNBands()-1)-y].GetSignal(int((floor(i+delta)+1))%npoints);
+      }
       float lowerBinFrac=1-((i+delta)-floor(i+delta));
       float upperBinFrac=1-lowerBinFrac;
       if (floor(i+delta)+1<fBaseRun->GetNPoints()) bico+=lowerBinFrac*bico1+upperBinFrac*bico2;

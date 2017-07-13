@@ -17,7 +17,7 @@
 
 в случае если нужно залить изменения:
 
->git add <changed files>
+>git add 'changed files'
 
 >git commit -m "description of changes"
 
