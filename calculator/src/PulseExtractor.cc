@@ -102,20 +102,20 @@ int PulseExtractor::fillSumProfile()
   fSumProfile.datatype = fBaseRun->GetDatatype();
   fSumProfile.npol = fBaseRun->GetNpol();
 
+  fSumProfile.sumchan = fBaseRun->GetSumchan();
+
   fSumProfile.year = fBaseRun->GetYear();
   fSumProfile.month = fBaseRun->GetMonth();
   fSumProfile.day = fBaseRun->GetDay();
   fSumProfile.hour = fBaseRun->GetHour();
   fSumProfile.min = fBaseRun->GetMinute();
   fSumProfile.sec = fBaseRun->GetSecond();
-  fSumProfile.nsec = fBaseRun->GetNsec();
   fSumProfile.utcyear = fBaseRun->GetUtcYear();
   fSumProfile.utcmonth = fBaseRun->GetUtcMonth();
   fSumProfile.utcday = fBaseRun->GetUtcDay();
   fSumProfile.utchour = fBaseRun->GetUtcHour();
   fSumProfile.utcmin = fBaseRun->GetUtcMinute();
   fSumProfile.utcsec = fBaseRun->GetUtcSecond();
-  fSumProfile.utcnsec = fBaseRun->GetUtcNsec();
 
   fSumProfile.period = fBaseRun->GetPeriod();
   fSumProfile.numpuls = fBaseRun->GetNumpuls();
@@ -254,6 +254,28 @@ int PulseExtractor::PrintPerBandSumProfile(std::string dirname)
   return 1;
 }
 
+int PulseExtractor::PrintCompensatedImpulses(std::string dirname)
+{
+  std::cout<<"print per band profile"<<std::endl;
+  std::ofstream sumProfileStream;
+  char tmp[100];
+  sprintf(tmp,"%s/compPulses_%s.prf",dirname.c_str(),fBaseRun->GetRunID().c_str());
+  sumProfileStream.open(tmp);
+  printHeader(&sumProfileStream);
+
+  sumProfileStream<<"### COMPENSATED PROFILE FOR EACH IMPULSE"<<"\n";
+  sumProfileStream<<"time       signal1  signal2... signal(fBaseRun->GetNumpuls())"<<"\n";
+  for (int i=0; i<fBaseRun->GetNumpointwin(); i++){
+    float time=fBaseRun->GetTau()*i;
+    sumProfileStream<<std::setw(6)<<time<<"        ";
+    for (int j=0; j<fBaseRun->GetNumpuls(); j++){
+      sumProfileStream<<std::setw(6)<<fCompensatedSignal.GetSignal(i+j*fBaseRun->GetNumpointwin())<<"         ";
+    }
+    sumProfileStream<<std::endl;
+  }
+  
+  return 1;
+}
 
 int PulseExtractor::DoCompensation()
 {

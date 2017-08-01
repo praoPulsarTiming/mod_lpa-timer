@@ -132,6 +132,12 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	  fPsrname+=buffer[ibuf];
 	}
       }
+
+      /////////////////////////////
+      //read cumchan
+      if (k==100) fSumchan=1;
+      else fSumchan=1;
+      /////////////////////////////
       
       //read tau (in ms)
       if (k==6) fTau=readNumber(buffer,13,1,4);
@@ -155,8 +161,9 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	fUtcyear=readNumber(buffer,19,2,0);
 	fUtchour=readNumber(buffer,22,2,0);
 	fUtcmin=readNumber(buffer,25,2,0);
-	fUtcsec=readNumber(buffer,28,2,0);
-	fUtcnsec=readNumber(buffer,31,7,0);
+	fUtcsec=readNumber(buffer,28,2,0)+1e-9*readNumber(buffer,31,7,0);
+	//	fUtcsec=readNumber(buffer,28,2,0);
+	//	fUtcnsec=readNumber(buffer,31,7,0);
       }
       if (k==2){
 	fDay=readNumber(buffer,13,2,0);
@@ -166,8 +173,9 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       if (k==3){
 	fHour=readNumber(buffer,13,2,0);
 	fMinute=readNumber(buffer,16,2,0);
-	fSecond=readNumber(buffer,19,2,0);
-	fNsec=readNumber(buffer,23,7,0);
+	fSec=readNumber(buffer,19,2,0)+1e-9*readNumber(buffer,23,7,0);
+	//	fSecond=readNumber(buffer,19,2,0);
+	//	fNsec=readNumber(buffer,23,7,0);
       }
     }   
 

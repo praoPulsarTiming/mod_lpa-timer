@@ -26,21 +26,21 @@ class BaseRun
   std::string GetPsrname() {return fPsrname;}
   std::string GetDatatype() {return fDatatype;}
   int GetNpol() {return fNpol;}
-
+  
+  int GetSumchan() {return fSumchan;}
+  
   int GetUtcDay() {return fUtcday;}
   int GetUtcMonth() {return fUtcmonth;}
   int GetUtcYear() {return fUtcyear;}
   int GetUtcHour() {return fUtchour;}
   int GetUtcMinute() {return fUtcmin;}
-  int GetUtcSecond() {return fUtcsec;}
-  int GetUtcNsec() {return fUtcnsec;}
+  float GetUtcSecond() {return fUtcsec;}
   int GetDay() {return fDay;}
   int GetMonth() {return fMonth;}
   int GetYear() {return fYear;}
   int GetHour() {return fHour;}
   int GetMinute() {return fMinute;}
-  int GetSecond() {return fSecond;}
-  int GetNsec() {return fNsec;}
+  float GetSecond() {return fSec;}
   
   float GetPeriod() {return fPeriod;}
   int GetNumpuls() {return fNumpuls;}
@@ -66,14 +66,16 @@ class BaseRun
   std::string fPsrname;
   std::string fDatatype;
   int fNpol;
+  int fSumchan;
 
   int fUtcday;
   int fUtcmonth;
   int fUtcyear;
   int fUtchour;
   int fUtcmin;
-  int fUtcsec;
-  int fUtcnsec;
+  //  int fUtcsec;
+  //  int fUtcnsec;
+  float fUtcsec;
 
   //temporary, it should be in the upper level run class
   float fPeriod;
@@ -95,8 +97,9 @@ class BaseRun
   int fYear;
   int fHour;
   int fMinute;
-  int fSecond;
-  int fNsec;
+  float fSec;
+  //  int fSecond;
+  //  int fNsec;
   float fDM;
 
   std::string fRunID;
