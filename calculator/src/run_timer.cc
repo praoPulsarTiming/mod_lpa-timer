@@ -92,6 +92,8 @@ int main(int argc, char *argv[])
     pulse.PrintSumProfile(output_dir.c_str());
     //  распечатать суммарные импульсы по частотам в файл
     pulse.PrintPerBandSumProfile(output_dir.c_str());
+
+    pulse.PrintCompensatedImpulses(output_dir.c_str());
     //  распечатать АЧХ в файл
     pulse.PrintFrequencyResponse(output_dir.c_str());
 

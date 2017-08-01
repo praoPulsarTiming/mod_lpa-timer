@@ -256,7 +256,7 @@ int PulseExtractor::PrintPerBandSumProfile(std::string dirname)
 
 int PulseExtractor::PrintCompensatedImpulses(std::string dirname)
 {
-  std::cout<<"print per band profile"<<std::endl;
+  std::cout<<"print comp impulse profile"<<std::endl;
   std::ofstream sumProfileStream;
   char tmp[100];
   sprintf(tmp,"%s/compPulses_%s.prf",dirname.c_str(),fBaseRun->GetRunID().c_str());
