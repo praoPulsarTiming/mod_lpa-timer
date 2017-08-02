@@ -65,9 +65,15 @@ class PulseExtractor : BaseRun
   SumProfile GetSumProfile() {return fSumProfile;} // получить структуру, описанную выше
 
   std::vector<float> GetSumPeriodsVec(); // получить суммарный профиль в виде вектора
+
+  SignalContainer GetCompensatedImpulse(int i); // get i-th impulse, max i is fNumpuls
+  std::vector<float> GetCompensatedImpulseVec(int i); // get i-th impulse as vector, max i is fNumpuls
   
   int ReadMask(std::string fname); // считать маску частот
   int SetBandMask(std::vector<float> mask) {fBandMask=mask;} // задать маску
+  int RemoveSpikes();
+  int CleanFrequencyResponse();
+  
 
  private:
   BaseRun* fBaseRun;
@@ -81,8 +87,13 @@ class PulseExtractor : BaseRun
   int sumPerBandPeriods();
   int fillSumProfile();
   int printHeader(std::ofstream* str);
-      
+
+  int removeSpikes();
+  int frequencyFilter();
+  
   std::vector<float> fBandMask;
 
   bool fIsSumPerBandAvailable;
+  
+  std::vector<int> fSpikeMask;  
 };

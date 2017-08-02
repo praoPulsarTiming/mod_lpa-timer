@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
     pulse.ReadMask("examples/bandMask.dat");
 
     // фильтры на данный момент отсутствуют (13.07.17)
-    //   pulse.FrequencyFilter(0.5);
-    //   pulse.SpikeFilter(0.5);
+    pulse.CleanFrequencyResponse();
+    pulse.RemoveSpikes();
 
     // суммируем периоды для каждой из частот
     // pulse.SumPerBandPeriods();

@@ -39,7 +39,7 @@ double readNumberMod(char* buffer, int iStart, int N)
     if (isInt) integer.push_back(chToNum(buffer[iStart+i]));
     if (isDec) {
       decimal.push_back(chToNum(buffer[iStart+i]));
-      std::cout<<"testDec1: "<<chToNum(buffer[iStart+i])<<std::endl;
+      //      std::cout<<"testDec1: "<<chToNum(buffer[iStart+i])<<std::endl;
     }
   }
   float number=0;
@@ -49,7 +49,7 @@ double readNumberMod(char* buffer, int iStart, int N)
   float dec=0;
   for (int i=0; i<decimal.size(); i++){
     dec += pow(10,-i-1)*decimal[i];
-    std::cout<<"testdec2: "<<pow(10,-i-1)*decimal[i]<<std::endl;
+    //    std::cout<<"testdec2: "<<pow(10,-i-1)*decimal[i]<<std::endl;
   }
   number+=dec;
   return number;
@@ -64,6 +64,8 @@ int convertStringParam(std::string IN, bool* OUT)
   return returnValue;
 }
 
+
+//OLD FUNCTION (02.08.17)
 float pulseToFloat(unsigned int pulse, float tau)
 {
   float exp, spectr;
@@ -75,6 +77,32 @@ float pulseToFloat(unsigned int pulse, float tau)
   return spectr;
 }
 
+/*
+float pulseToFloat(unsigned int pulse, float tau)
+{
+  float exp,spectr_t;
+  
+  spectr_t =  (pulse&0xFFFFFF);
+  
+  exp = int(pulse&0x7F000000) >> 24;
+  
+  exp = exp-64-24;
+  
+  float ratio=tau/0.2048;
+  
+  spectr_t=spectr_t*pow(2,exp)/ratio;
+  
+  spectr_t=sqrt(spectr_t*4/2048/2048);
+  
+  spectr_t=spectr_t*2000/2047;
+  
+  spectr_t=spectr_t*sqrt(2.0)/2;
+  
+  spectr_t=spectr_t*spectr_t;
+  
+  return spectr_t;
+}
+*/
 BaseRun::BaseRun()
 {
   fTelcode="bsa1";
@@ -119,7 +147,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       //read period (in s)
       if (k==4)	{
 	fPeriod=readNumberMod(buffer,13,11);
-	std::cout<<std::setprecision(11)<<"period: "<<fPeriod<<std::endl;
+	//	std::cout<<std::setprecision(11)<<"period: "<<fPeriod<<std::endl;
       }
       
       if (k==9) {

@@ -3,7 +3,7 @@
 //add frequency weights resulting from frequency response
 //add mask reading
 //add mask calculation from frequency response
-
+ 
 
 PulseExtractor::PulseExtractor()
 {
@@ -27,6 +27,7 @@ PulseExtractor::PulseExtractor(BaseRun* run)
     fCompensatedSignalBandSum.push_back(SignalContainer(fBaseRun->GetNumpointwin(),0,fBaseRun->GetNumpointwin()+1));
   
   for (int i=0; i<fBaseRun->GetNBands(); i++) {fBandMask.push_back(1);}
+  for (int i=0; i<fBaseRun->GetNPoints(); i++) {fSpikeMask.push_back(1);}
   fIsSumPerBandAvailable=false;
   if (fBaseRun->GetSumchan()==1) fIsSumPerBandAvailable=true; 
 }
@@ -162,6 +163,12 @@ int PulseExtractor::sumPeriods()
       fSumProfile.prfdata[j]+=fCompensatedSignalSum.GetSignal(j);
     }
   }
+
+  //subtract mean:
+  for (int i=0; i<fSumProfile.prfdata.size(); i++){
+    fSumProfile.prfdata[i]=fSumProfile.prfdata[i]-fCompensatedSignalSum.GetSignalMedian(0,1000000);
+  }
+  
   return 1;
 }
 
@@ -194,7 +201,7 @@ int PulseExtractor::PrintSumProfile(std::string dirname)
   sumProfileStream<<"time        signal"<<"\n";
   for (int i=0; i<fBaseRun->GetNumpointwin(); i++){
     float time=fBaseRun->GetTau()*i;
-    sumProfileStream<<time<<"     "<<fSumProfile.prfdata[i]<<"\n";
+    sumProfileStream<<i<<"     "<<fSumProfile.prfdata[i]<<"\n";
   }
   return 1;
 }
@@ -307,4 +314,92 @@ std::vector<float> PulseExtractor::GetSumPeriodsVec()
   return vec;
 }
 
+SignalContainer PulseExtractor::GetCompensatedImpulse(int i)
+{
+  SignalContainer returnProfile(fBaseRun->GetNumpointwin(),0,fBaseRun->GetTau()*fBaseRun->GetNumpointwin());
+  for (int k=0; k<fBaseRun->GetNumpointwin(); k++){
+    returnProfile.SetSignal(k,fCompensatedSignal.GetSignal(i*fBaseRun->GetNumpointwin()+k));
+  }
+  return returnProfile;
+}
 
+std::vector<float> PulseExtractor::GetCompensatedImpulseVec(int i)
+{
+  std::vector<float> returnVec;
+  for (int k=0; k<fBaseRun->GetNumpointwin(); k++){
+    returnVec.push_back(fCompensatedSignal.GetSignal(i*fBaseRun->GetNumpointwin()+k));
+  }
+  return returnVec;
+}
+
+
+
+int PulseExtractor::removeSpikes()
+{
+  std::cout<<"removing spikes"<<std::endl;
+  
+  SignalContainer sumSigRef(fBaseRun->GetNPoints(),0,fBaseRun->GetNPoints()*fBaseRun->GetTau());
+
+  //calculate reference signal sum with DM=0
+  for (int y=0; y<fBaseRun->GetNBands(); y++){
+    if (fBandMask[y]==0) continue;
+    for (int i=0; i<fBaseRun->GetNPoints(); i++){
+      sumSigRef.SetSignal(i,sumSigRef.GetSignal(i)+fBaseRun->GetBandSignal(y)->GetSignal(i));
+    }
+  }
+
+  //find spikes
+  for (int i=0; i<fBaseRun->GetNPoints(); i++){
+    float median, variance;
+    if (i>5&&i<fBaseRun->GetNPoints()-5) {
+      median=sumSigRef.GetSignalMedian(i-5, i+5);
+      variance=sumSigRef.GetSignalVariance(i-5, i+5);
+    }
+    else if (i<=5) {
+      median=sumSigRef.GetSignalMedian(0, i+5);
+      variance=sumSigRef.GetSignalVariance(0, i+5);
+    }
+    else if (i>=fBaseRun->GetNPoints()-5) {
+      median=sumSigRef.GetSignalMedian(i-5, 1000000);
+      variance=sumSigRef.GetSignalVariance(i-5, 1000000);
+    }
+    if (fabs(sumSigRef.GetSignal(i)-median)/variance > 5) {
+      fSpikeMask[i]=0;
+      for (int y=0; y<fBaseRun->GetNBands(); y++){
+	fBaseRun->GetBandSignal(y)->SetSignal(i,median/fBaseRun->GetNBands());
+      }
+    }
+  }
+  return 1;
+}
+
+int PulseExtractor::frequencyFilter()
+{
+  SignalContainer buf(fBaseRun->GetNBands(),0,fBaseRun->GetNBands());
+  for (int i=0; i<fBaseRun->GetNBands(); i++){
+    buf.SetSignal(i,fBaseRun->GetFreqResponse(i));
+  }
+  float variance=buf.GetSignalVariance(0,1000000);
+  for (int i=0; i<fBaseRun->GetNBands(); i++){
+    float med=0;
+    if (i>=5||i<=fBaseRun->GetNBands()-5){
+      med=buf.GetSignalMedian(i-5,i+5);
+    }
+    else if (i<5) med=buf.GetSignalMedian(0,i+5);
+    else if (i>fBaseRun->GetNBands()-5) med=buf.GetSignalMedian(i-5,100000);
+    if (fabs(buf.GetSignal(i)-med)/variance>5) fBandMask[i]=0;
+  }
+  return 1;
+}
+
+int PulseExtractor::RemoveSpikes()
+{
+  removeSpikes();
+  return 1;
+}
+
+int PulseExtractor::CleanFrequencyResponse()
+{
+  frequencyFilter();
+  return 1;
+}
