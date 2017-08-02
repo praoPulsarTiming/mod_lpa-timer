@@ -340,6 +340,7 @@ int PulseExtractor::removeSpikes()
   
   SignalContainer sumSigRef(fBaseRun->GetNPoints(),0,fBaseRun->GetNPoints()*fBaseRun->GetTau());
 
+  std::cout<<"ref"<<std::endl;
   //calculate reference signal sum with DM=0
   for (int y=0; y<fBaseRun->GetNBands(); y++){
     if (fBandMask[y]==0) continue;
@@ -348,22 +349,27 @@ int PulseExtractor::removeSpikes()
     }
   }
 
+  std::cout<<"find spikes"<<std::endl;
   //find spikes
   for (int i=0; i<fBaseRun->GetNPoints(); i++){
+    std::cout<<"point #"<<i<<"   "<<fBaseRun->GetNPoints()<<std::endl;
     float median, variance;
-    if (i>5&&i<fBaseRun->GetNPoints()-5) {
+    if (i>=5) {
       median=sumSigRef.GetSignalMedian(i-5, i+5);
       variance=sumSigRef.GetSignalVariance(i-5, i+5);
     }
-    else if (i<=5) {
+    else {
       median=sumSigRef.GetSignalMedian(0, i+5);
       variance=sumSigRef.GetSignalVariance(0, i+5);
     }
-    else if (i>=fBaseRun->GetNPoints()-5) {
-      median=sumSigRef.GetSignalMedian(i-5, 1000000);
-      variance=sumSigRef.GetSignalVariance(i-5, 1000000);
+    /*
+    else if (i>fBaseRun->GetNPoints()-5) {
+      median=sumSigRef.GetSignalMedian(i-5, i+5);
+      variance=sumSigRef.GetSignalVariance(i-5, i+5);
     }
+    */
     if (fabs(sumSigRef.GetSignal(i)-median)/variance > 5) {
+      std::cout<<"got spike"<<std::endl;
       fSpikeMask[i]=0;
       for (int y=0; y<fBaseRun->GetNBands(); y++){
 	fBaseRun->GetBandSignal(y)->SetSignal(i,median/fBaseRun->GetNBands());
@@ -375,6 +381,7 @@ int PulseExtractor::removeSpikes()
 
 int PulseExtractor::frequencyFilter()
 {
+  std::cout<<"clean frequency response"<<std::endl;
   SignalContainer buf(fBaseRun->GetNBands(),0,fBaseRun->GetNBands());
   for (int i=0; i<fBaseRun->GetNBands(); i++){
     buf.SetSignal(i,fBaseRun->GetFreqResponse(i));
