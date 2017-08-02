@@ -28,6 +28,7 @@ PulseExtractor::PulseExtractor(BaseRun* run)
   
   for (int i=0; i<fBaseRun->GetNBands(); i++) {fBandMask.push_back(1);}
   fIsSumPerBandAvailable=false;
+  if (fBaseRun->GetSumchan()==1) fIsSumPerBandAvailable=true; 
 }
 
 
@@ -223,8 +224,8 @@ int PulseExtractor::printHeader(std::ofstream* stream)
   *stream<<"obscode: "<<fSumProfile.obscode<<"\n";
   *stream<<"rtype: "<<fSumProfile.rtype<<"\n";
   *stream<<"psrname: "<<fSumProfile.psrname<<"\n";
-  *stream<<"period: "<<fSumProfile.period<<"\n";
-  *stream<<"tau: "<<fSumProfile.tau<<"\n";
+  *stream<<"period: "<<std::setprecision(9) <<fSumProfile.period<<"\n";
+  *stream<<"tau: "<<std::setprecision(4)<<fSumProfile.tau<<"\n";
   *stream<<"date: "<<fSumProfile.day<<"/"<<fSumProfile.month<<"/"<<fSumProfile.year<<"\n";
   *stream<<"time: "<<fSumProfile.hour<<":"<<fSumProfile.min<<":"<<fSumProfile.sec<<"\n";
   *stream<<"frequency: "<<fSumProfile.freq<<"\n";
@@ -291,6 +292,7 @@ int PulseExtractor::SumPeriods()
 
 int PulseExtractor::SumPerBandPeriods()
 {
+  if (fIsSumPerBandAvailable) return 1;
   fIsSumPerBandAvailable=true;
   sumPerBandPeriods();
   return 1;

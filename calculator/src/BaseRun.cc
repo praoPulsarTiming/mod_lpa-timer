@@ -1,4 +1,5 @@
 #include "BaseRun.h"
+#include <iomanip>
 
 int chToNum(char ch)
 {
@@ -12,7 +13,7 @@ double readNumber(char* buffer, int iStart, int N0, int N1)
   double decimal=0;
 
   for (int i=1; i<=N0; i++){
-    number+=pow(10,i-1+N1)*chToNum(buffer[iStart+N0-i]);
+    number+=pow(10,i-1+N1)*chToNum (buffer[iStart+N0-i]);
   }
   for (int i=1; i<=N1; i++){
     decimal+=pow(10,i-1)*chToNum(buffer[iStart+N0+N1+1-i]);
@@ -36,7 +37,10 @@ double readNumberMod(char* buffer, int iStart, int N)
     }
     if (chToNum(buffer[iStart+i])<0) continue;
     if (isInt) integer.push_back(chToNum(buffer[iStart+i]));
-    if (isDec) decimal.push_back(chToNum(buffer[iStart+i]));
+    if (isDec) {
+      decimal.push_back(chToNum(buffer[iStart+i]));
+      std::cout<<"testDec1: "<<chToNum(buffer[iStart+i])<<std::endl;
+    }
   }
   float number=0;
   for (int i=0; i<integer.size(); i++){
@@ -45,11 +49,20 @@ double readNumberMod(char* buffer, int iStart, int N)
   float dec=0;
   for (int i=0; i<decimal.size(); i++){
     dec += pow(10,-i-1)*decimal[i];
+    std::cout<<"testdec2: "<<pow(10,-i-1)*decimal[i]<<std::endl;
   }
   number+=dec;
   return number;
 }
 
+int convertStringParam(std::string IN, bool* OUT)
+{
+  int returnValue=0;
+  if (IN=="ye") *OUT=true;
+  else if (IN=="no") *OUT=false;
+  else returnValue=1;
+  return returnValue;
+}
 
 float pulseToFloat(unsigned int pulse, float tau)
 {
@@ -103,9 +116,12 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	  //	  std::cout<<q<<":"<<buffer[q]<<" ";
       //	}
       
-      //read period (in ms)
-      if (k==4)	fPeriod=1000*readNumberMod(buffer,13,11);
-
+      //read period (in s)
+      if (k==4)	{
+	fPeriod=readNumberMod(buffer,13,11);
+	std::cout<<std::setprecision(11)<<"period: "<<fPeriod<<std::endl;
+      }
+      
       if (k==9) {
 	fDM=readNumberMod(buffer,13,7);
       }
@@ -128,16 +144,24 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       if (k==7) fNumpointwin=number;
 
       if (k==1) {
-	for (int ibuf=13; ibuf<19; ibuf++){
+	for (int ibuf=13; ibuf<20; ibuf++){
 	  fPsrname+=buffer[ibuf];
 	}
       }
 
       /////////////////////////////
       //read cumchan
-      if (k==100) fSumchan=1;
-      else fSumchan=1;
-      /////////////////////////////
+      if (k==8) {
+	std::string buf;
+	for (int ibuf=13; ibuf<15; ibuf++){
+	  buf+=buffer[ibuf];
+	}
+	bool ff=true;
+	convertStringParam(buf, &ff);
+	fSumchan=(int)ff;
+	//	std::cout<<"fSumchan: "<<fSumchan<<std::endl;
+      }
+	/////////////////////////////
       
       //read tau (in ms)
       if (k==6) fTau=readNumber(buffer,13,1,4);
@@ -168,7 +192,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       if (k==2){
 	fDay=readNumber(buffer,13,2,0);
 	fMonth=readNumber(buffer,16,2,0);
-	fYear=readNumber(buffer,19,2,0);
+	fYear=readNumber(buffer,19,4,0);
       }
       if (k==3){
 	fHour=readNumber(buffer,13,2,0);

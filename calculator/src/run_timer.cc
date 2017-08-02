@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     //   pulse.SpikeFilter(0.5);
 
     // суммируем периоды для каждой из частот
-    pulse.SumPerBandPeriods();
+    // pulse.SumPerBandPeriods();
     // компенсируем dm 
     pulse.DoCompensation();
     // суммируем периоды для компенсированных данных
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     // распечатать суммарный импульс в файл
     pulse.PrintSumProfile(output_dir.c_str());
     //  распечатать суммарные импульсы по частотам в файл
-    pulse.PrintPerBandSumProfile(output_dir.c_str());
+    // pulse.PrintPerBandSumProfile(output_dir.c_str());
 
     pulse.PrintCompensatedImpulses(output_dir.c_str());
     //  распечатать АЧХ в файл
