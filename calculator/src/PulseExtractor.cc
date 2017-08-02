@@ -348,11 +348,8 @@ int PulseExtractor::removeSpikes()
       sumSigRef.SetSignal(i,sumSigRef.GetSignal(i)+fBaseRun->GetBandSignal(y)->GetSignal(i));
     }
   }
-
-  std::cout<<"find spikes"<<std::endl;
   //find spikes
   for (int i=0; i<fBaseRun->GetNPoints(); i++){
-    std::cout<<"point #"<<i<<"   "<<fBaseRun->GetNPoints()<<std::endl;
     float median, variance;
     if (i>=5) {
       median=sumSigRef.GetSignalMedian(i-5, i+5);
@@ -369,7 +366,7 @@ int PulseExtractor::removeSpikes()
     }
     */
     if (fabs(sumSigRef.GetSignal(i)-median)/variance > 5) {
-      std::cout<<"got spike"<<std::endl;
+      //      std::cout<<"got spike"<<std::endl;
       fSpikeMask[i]=0;
       for (int y=0; y<fBaseRun->GetNBands(); y++){
 	fBaseRun->GetBandSignal(y)->SetSignal(i,median/fBaseRun->GetNBands());
