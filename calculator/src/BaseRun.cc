@@ -64,7 +64,7 @@ int convertStringParam(std::string IN, bool* OUT)
   return returnValue;
 }
 
-
+/*
 //OLD FUNCTION (02.08.17)
 float pulseToFloat(unsigned int pulse, float tau)
 {
@@ -76,8 +76,8 @@ float pulseToFloat(unsigned int pulse, float tau)
   spectr=spectr*std::pow(2,exp)/ratio;
   return spectr;
 }
+*/
 
-/*
 float pulseToFloat(unsigned int pulse, float tau)
 {
   float exp,spectr_t;
@@ -102,7 +102,7 @@ float pulseToFloat(unsigned int pulse, float tau)
   
   return spectr_t;
 }
-*/
+
 BaseRun::BaseRun()
 {
   fTelcode="bsa1";
