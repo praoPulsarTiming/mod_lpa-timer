@@ -54,7 +54,7 @@ double readNumberMod(char* buffer, int iStart, int N)
   number+=dec;
   return number;
 }
-
+/*
 int convertStringParam(std::string IN, bool* OUT)
 {
   int returnValue=0;
@@ -63,8 +63,8 @@ int convertStringParam(std::string IN, bool* OUT)
   else returnValue=1;
   return returnValue;
 }
+*/
 
-/*
 //OLD FUNCTION (02.08.17)
 float pulseToFloat(unsigned int pulse, float tau)
 {
@@ -76,8 +76,8 @@ float pulseToFloat(unsigned int pulse, float tau)
   spectr=spectr*std::pow(2,exp)/ratio;
   return spectr;
 }
-*/
 
+/*
 float pulseToFloat(unsigned int pulse, float tau)
 {
   float exp,spectr_t;
@@ -102,7 +102,7 @@ float pulseToFloat(unsigned int pulse, float tau)
   
   return spectr_t;
 }
-
+*/
 BaseRun::BaseRun()
 {
   fTelcode="bsa1";
@@ -110,7 +110,7 @@ BaseRun::BaseRun()
   fRtype="DPP1";
   fDatatype="I";
   fNpol=1;
-  fNBands=512;
+  fNChannels=512;
 }
 
 BaseRun::~BaseRun()
@@ -185,7 +185,8 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	  buf+=buffer[ibuf];
 	}
 	bool ff=true;
-	convertStringParam(buf, &ff);
+	if (buf=="ye") ff=true;
+	else if (buf=="no") ff=false;
 	fSumchan=(int)ff;
 	//	std::cout<<"fSumchan: "<<fSumchan<<std::endl;
       }
@@ -237,7 +238,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   //  char tmp[100];
   //  TH1F sigTimeProfile[512];
   std::vector<float> freqResponse;
-  //  std::vector<SignalContainer> perBandSignal;
+  //  std::vector<SignalContainer> perChannelSignal;
   std::cout<<"READING DATA    numPeriods: "<<fNumpuls<<"   binsPerPeriod: "<<fNumpointwin<<"   tau: "<<fTau<<std::endl;
    //	   <<"   tau: "<<fTau<<"   period: "<<fPeriod<<"  fDay: "<<fDay<<"  fSec: "<<fSecond<<"\n"
   //	   <<"     fre0: "<<fFreq0<<"   freq511: "<<fFreq511<<std::endl;
@@ -255,7 +256,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   int iPeriod=0;
 
     for (int i=0; i<512; i++){
-    fPerBandSignal.push_back(SignalContainer(fNPoints,0,fDuration));
+    fPerChannelSignal.push_back(SignalContainer(fNPoints,0,fDuration));
   }
   while(data.good())
     {
@@ -266,8 +267,8 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       int iFreq=(((ipos-sizeHeader)/lengthData-1)%512);
       if (iFreq!=513) {
 	//std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<
-	fPerBandSignal[iFreq].SetSignal(iPointAbs,ampl);
-	//	std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<"    "<<fPerBandSignal[iFreq].GetSignal(iPointAbs)<<std::endl;
+	fPerChannelSignal[iFreq].SetSignal(iPointAbs,ampl);
+	//	std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<"    "<<fPerChannelSignal[iFreq].GetSignal(iPointAbs)<<std::endl;
       }
       if (iFreq==511){
 	iPoint++;
@@ -279,20 +280,20 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       }	
     }
   for (int i=0; i<fNPoints; i++){
-    //  std::cout<<"test: "<<i<<"  "<<fPerBandSignal[18].GetSignal(i)<<std::endl;
+    //  std::cout<<"test: "<<i<<"  "<<fPerChannelSignal[18].GetSignal(i)<<std::endl;
   }
   
   for (int i=0; i<512; i++){
-    fFreqResponse.push_back(fPerBandSignal[i].GetSignalMean(0,1000000));
-    fFreqResponseMedian.push_back(fPerBandSignal[i].GetSignalMedian(0,1000000));
+    fFreqResponse.push_back(fPerChannelSignal[i].GetSignalMean(0,1000000));
+    fFreqResponseMedian.push_back(fPerChannelSignal[i].GetSignalMedian(0,1000000));
   }
 
   for (int i=0; i<512; i++){
-    fFreqResponse.push_back(fPerBandSignal[i].GetSignalMean(0,1000000));
+    fFreqResponse.push_back(fPerChannelSignal[i].GetSignalMean(0,1000000));
     for (int j=0; j<fNPoints; j++){
-      //std::cout<<i<<"    "<<j<<"     "<<fPerBandSignal[i].GetSignal(j)<<"    "<<pow(fFreqResponse[i],-1)<<"    "<<fPerBandSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1)<<"    "<<fFreqResponseMedian[i]<<std::endl;
-      fPerBandSignal[i].SetSignal(j,fPerBandSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1));
-      //fPerBandSignal[i].SetSignal(j,fPerBandSignal[i].GetSignal(j)-fFreqResponseMedian[i]);
+      //std::cout<<i<<"    "<<j<<"     "<<fPerChannelSignal[i].GetSignal(j)<<"    "<<pow(fFreqResponse[i],-1)<<"    "<<fPerChannelSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1)<<"    "<<fFreqResponseMedian[i]<<std::endl;
+      fPerChannelSignal[i].SetSignal(j,fPerChannelSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1));
+      //fPerChannelSignal[i].SetSignal(j,fPerChannelSignal[i].GetSignal(j)-fFreqResponseMedian[i]);
     }
   }
   

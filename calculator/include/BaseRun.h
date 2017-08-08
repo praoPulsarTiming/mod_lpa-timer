@@ -34,18 +34,18 @@ class BaseRun
   int GetUtcYear() {return fUtcyear;}
   int GetUtcHour() {return fUtchour;}
   int GetUtcMinute() {return fUtcmin;}
-  float GetUtcSecond() {return fUtcsec;}
+  double GetUtcSecond() {return fUtcsec;}
   int GetDay() {return fDay;}
   int GetMonth() {return fMonth;}
   int GetYear() {return fYear;}
   int GetHour() {return fHour;}
   int GetMinute() {return fMinute;}
-  float GetSecond() {return fSec;}
+  double GetSecond() {return fSec;}
   
-  float GetPeriod() {return fPeriod;}
+  double GetPeriod() {return fPeriod;}
   int GetNumpuls() {return fNumpuls;}
   int GetNumpointwin() {return fNumpointwin;}
-  int GetNBands() {return fNBands;}
+  int GetNChannels() {return fNChannels;}
   float GetFreqFirst() {return fFreqFirst;}
   float GetFreqLast() {return fFreqLast;}
   float GetWLFirst() {return fWLFirst;}
@@ -56,7 +56,7 @@ class BaseRun
   int GetNPoints() {return fNPoints;}
   float GetDuration() {return fDuration;}
 
-  SignalContainer* GetBandSignal(int iband) {return &fPerBandSignal[iband];}
+  SignalContainer* GetChannelSignal(int iband) {return &fPerChannelSignal[iband];}
   float GetFreqResponse(int iband) {return fFreqResponse[iband];} 
   
  private:
@@ -75,15 +75,15 @@ class BaseRun
   int fUtcmin;
   //  int fUtcsec;
   //  int fUtcnsec;
-  float fUtcsec;
+  double fUtcsec;
 
   //temporary, it should be in the upper level run class
-  float fPeriod;
+  double fPeriod;
   int fNumpuls;
   int fNumpointwin;
   ////////////////
   
-  int fNBands;       //number of bands
+  int fNChannels;       //number of bands
   float fFreqFirst;  //lowest frequency MHz
   float fFreqLast;   //highest frequency MHz
   float fWLFirst;    //longest wavelength m
@@ -97,14 +97,14 @@ class BaseRun
   int fYear;
   int fHour;
   int fMinute;
-  float fSec;
+  double fSec;
   //  int fSecond;
   //  int fNsec;
   float fDM;
 
   std::string fRunID;
   
-  std::vector<SignalContainer> fPerBandSignal;
+  std::vector<SignalContainer> fPerChannelSignal;
   std::vector<float> fFreqResponse;
   std::vector<float> fFreqResponseMedian;
 };

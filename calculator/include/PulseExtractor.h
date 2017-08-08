@@ -54,12 +54,12 @@ class PulseExtractor : BaseRun
   
   int DoCompensation(); // функция проводит компенсацию запаздывания, время всегда приводится к самой высокой частоте 112.084, если ранее было проведено суммирование периодов для отдельных частот, исполуются свернутые профили, иначе полные профили для каждой частоты
   int SumPeriods();   // функция суммирует периоды в компенсированных данных, если суммирование было проведено ранее для каждой из частот, функция ничего не меняет, только заполняет финальный объект SumProfile
-  int SumPerBandPeriods(); // функция суммирует периоды для каждой из частот
+  int SumPerChannelPeriods(); // функция суммирует периоды для каждой из частот
   
   float GetDM() {return fDM;}
   int PrintFrequencyResponse(std::string outdir); // распечатать АЧХ (средний сигнал на частоте) в файл с именем outdir/<номер сеанса>.fr
   int PrintSumProfile(std::string outdir);   // распечатать суммарный профиль в файл с именем outdir/<номер сеанса>.prf
-  int PrintPerBandSumProfile(std::string outdir); // распечатать суммарный профиль  для каждой из частот в файл с именем outdir/bands_<номер сеанса>.prf
+  int PrintPerChannelSumProfile(std::string outdir); // распечатать суммарный профиль  для каждой из частот в файл с именем outdir/bands_<номер сеанса>.prf
   int PrintCompensatedImpulses(std::string outdir);
 
   SumProfile GetSumProfile() {return fSumProfile;} // получить структуру, описанную выше
@@ -68,9 +68,13 @@ class PulseExtractor : BaseRun
 
   SignalContainer GetCompensatedImpulse(int i); // get i-th impulse, max i is fNumpuls
   std::vector<float> GetCompensatedImpulseVec(int i); // get i-th impulse as vector, max i is fNumpuls
+
+  int FillMaskFRweights();
   
   int ReadMask(std::string fname); // считать маску частот
-  int SetBandMask(std::vector<float> mask) {fBandMask=mask;} // задать маску
+  int SetChannelMask(std::vector<float> mask) {fChannelMask=mask;} // задать маску
+  std::vector<float> GetChannelMask() {return fChannelMask;}
+  
   int RemoveSpikes();
   int CleanFrequencyResponse();
   
@@ -80,20 +84,20 @@ class PulseExtractor : BaseRun
   float fDM;
   SignalContainer fCompensatedSignal;
   SignalContainer fCompensatedSignalSum;
-  std::vector<SignalContainer> fCompensatedSignalBandSum;
+  std::vector<SignalContainer> fCompensatedSignalChannelSum;
   SumProfile fSumProfile;
   int compensateDM();
   int sumPeriods();
-  int sumPerBandPeriods();
+  int sumPerChannelPeriods();
   int fillSumProfile();
   int printHeader(std::ofstream* str);
 
   int removeSpikes();
   int frequencyFilter();
   
-  std::vector<float> fBandMask;
+  std::vector<float> fChannelMask;
 
-  bool fIsSumPerBandAvailable;
+  bool fIsSumPerChannelAvailable;
   
   std::vector<int> fSpikeMask;  
 };
