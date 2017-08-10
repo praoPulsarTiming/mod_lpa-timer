@@ -1,3 +1,5 @@
+//набор процедур для чтения конфигурационного файла
+
 struct ConfigParam{
   std::string rawdata_dir;
   std::string output_dir;
@@ -73,14 +75,14 @@ ConfigParam ReadConfig(std::string cname)
   output.getIndImpulses=bGetIndImpulses;
   output.getFR=bGetFR;
 
-  std::cout<<"PARAMS: "<<bRemoveSpikes<<"  "<<bFRfilter<<"  "<<bGetDynSpectrum<<"  "<<bGetIndImpulses<<std::endl;
+//  std::cout<<"PARAMS: "<<bRemoveSpikes<<"  "<<bFRfilter<<"  "<<bGetDynSpectrum<<"  "<<bGetIndImpulses<<std::endl;
   
   std::string rID;
   int runCounter=0;
   while (flist>>rID){
     runCounter++;
     flist.getline(tmp,100,'\n');
-    std::cout<<runCounter<<std::endl;
+    //std::cout<<runCounter<<std::endl;
     if (runCounter<startFileNumber) continue;
     if (runCounter>=startFileNumber+nFiles) break;
     output.runs.push_back(rID);
