@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   
   ConfigParam conf=ReadConfig(configName);
 
-  std::cout<<"output in:   "<<conf.output_dir<<std::endl;
+  //  std::cout<<"output in:   "<<conf.output_dir<<std::endl;
 
   // создаем контейнер для данных сеанса
   BaseRun br;
@@ -46,19 +46,34 @@ int main(int argc, char *argv[])
     PulseExtractor pulse(&br);
 
     //  считываем маску
-    pulse.ReadMask("examples/bandMask.dat");
+    pulse.ReadMask("examples/channel_mask.dat");
 
     pulse.FillMaskFRweights();
 
     // фильтры на данный момент отсутствуют (13.07.17)
-    //    pulse.CleanFrequencyResponse();
-    //    pulse.RemoveSpikes();
-
-    if (conf.getIndImpulses) {
+    if (conf.doFRfiltering) pulse.CleanFrequencyResponse();
+    if (conf.doRemoveSpikes) pulse.RemoveSpikes();
+    
+    if (!conf.getIndImpulses){
+      pulse.SumPerChannelPeriods();
       pulse.DoCompensation();
-      pulse.PrintCompensatedImpulses(conf.output_dir.c_str());
+      if (conf.getDynSpectrum) pulse.PrintChannelSumProfile(conf.output_dir.c_str());
     }
     
+    if (conf.getIndImpulses){
+      if (!conf.getDynSpectrum){
+	pulse.DoCompensation();
+	pulse.PrintCompensatedImpulses(conf.output_dir.c_str());
+      }
+      if (conf.getDynSpectrum) {
+	pulse.DoCompensation();
+	pulse.PrintCompensatedImpulses(conf.output_dir.c_str());
+	pulse.SumPerChannelPeriods();
+	pulse.DoCompensation();
+	pulse.PrintChannelSumProfile(conf.output_dir.c_str());
+      }
+    }
+    /*
     // суммируем периоды для каждой из частот
     if (conf.getDynSpectrum) {
       pulse.SumPerChannelPeriods();
@@ -66,7 +81,7 @@ int main(int argc, char *argv[])
       // компенсируем dm 
       pulse.DoCompensation();
     }
-
+    */
     // суммируем периоды для компенсированных данных
     pulse.SumPeriods();
 
@@ -87,7 +102,8 @@ int main(int argc, char *argv[])
 
     // СЮДА МОЖНО ДОБАВЛЯТЬ КОД ДЛЯ КРОСС-КОРРЕЛЯЦИИ
 
+    
   }
-
+  std::cout<<"работа программы успешно завершена"<<std::endl;
   return 0;
 }

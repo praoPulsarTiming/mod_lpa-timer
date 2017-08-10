@@ -1,9 +1,5 @@
 #include "PulseExtractor.h"
 #include <iomanip>
-//add frequency weights resulting from frequency response
-//add mask reading
-//add mask calculation from frequency response
- 
 
 PulseExtractor::PulseExtractor()
 {
@@ -24,63 +20,49 @@ PulseExtractor::PulseExtractor(BaseRun* run)
   fCompensatedSignalSum=SignalContainer(fBaseRun->GetNumpointwin(),0,fBaseRun->GetNumpointwin());
 
   for (int i=0; i<fBaseRun->GetNChannels(); i++)
-    fCompensatedSignalChannelSum.push_back(SignalContainer(fBaseRun->GetNumpointwin(),0,fBaseRun->GetNumpointwin()));
+    fDynamicSpectrum.push_back(SignalContainer(fBaseRun->GetNumpointwin(),0,fBaseRun->GetNumpointwin()));
   
   for (int i=0; i<fBaseRun->GetNChannels(); i++) {fChannelMask.push_back(1);}
   for (int i=0; i<fBaseRun->GetNPoints(); i++) {fSpikeMask.push_back(1);}
-  fIsSumPerChannelAvailable=false;
-  //  if (fBaseRun->GetSumchan()==1) fIsSumPerChannelAvailable=true; 
+  fIsDynSpecAvailable=false;
+  fNChan=fBaseRun->GetNChannels();
+  fNChanAfterMask=fBaseRun->GetNChannels();
 }
 
 
 int PulseExtractor::compensateDM()
 {
-  std::cout<<"do compensation"<<std::endl;
+  std::cout<<"компенсация дисперсионного запаздывания"<<std::endl;
   float dm=fDM;
-  //define which bins current thread would sum
-  //  std::cout<<fTau<<"  "<<fPeriod<<" "<<fNPeriods<<" "<<fNThreads<<"   start: "<<startPeriod<<"  "<<endPeriod<<std::endl;
   int npoints;
-  if (fIsSumPerChannelAvailable||fBaseRun->GetSumchan()==1) npoints=fBaseRun->GetNumpointwin();
+  if (fIsDynSpecAvailable||fBaseRun->GetSumchan()==1) npoints=fBaseRun->GetNumpointwin();
   else npoints=fBaseRun->GetNPoints();
   
   for (int i=0; i<npoints; i++){
-    //(i<=fNBinsPerPeriod)||i>fNBins-fNBinsPerPeriod) continue;
-    
-    //for (int i=1; i<fNBins+1; i++){
     float fDnu=fabs(fBaseRun->GetFreqLast()-fBaseRun->GetFreqFirst())/512;
     float fDL=fabs(fBaseRun->GetWLLast()-fBaseRun->GetWLFirst())/512;
     float bico=0;
     for (int y=0; y<fBaseRun->GetNChannels(); y++) {
       if (fChannelMask[y]==0) continue;
-      //if (fSumProfile.freq==-1) {
-      //fSumProfile.freq=fBaseRun->GetFreqFirst()+fDnu*y;
-      // }
-      //take sigTimeProfile[511-y] as 511-th is shorter wavelength
       //calculate delay wrt 511th for particular freq[511-y]
       float dT=4.6*(-pow(fBaseRun->GetWLLast(),2)+pow(fBaseRun->GetWLLast()+y*fDL,2))*fDM*0.001; //covert to ms
       //calculate residual difference to nearest positive side pulse
       float dTnearest=dT-1000*fBaseRun->GetPeriod()*floor(dT*pow(1000*fBaseRun->GetPeriod(),-1));
       //move frequency band by -dTnearest bins, add lower bins to "upper side"
       float delta=dTnearest*pow(fBaseRun->GetTau(),-1);
-      //float bico1=fSigArray[((fNFreq-1)-y)*fNBinsInput+int(floor(i+delta))];
-      //float bico2=fSigArray[((fNFreq-1)-y)*fNBinsInput+int(floor(i+delta)+1)];
-      //float bico1=sigArray[((511-y)*nBinsInput+int(floor(i+delta)))%(nBinsInput*nFreq)];
-      //float bico2=sigArray[((511-y)*nBinsInput+int((floor(i+delta)+1)))%(nBinsInput*nFreq)];
 
-      //add normalisation here
-      //float bandMean=fBaseRun->GetFreqResponse(y);
+      //define normalisation based on channel mask
       float normFactor=fChannelMask[y];
 
-      //      if (bandMean==0) normFactor=1;
-      //     else normFactor=pow(bandMean,-1);
+      //channel summation
       float bico1, bico2;
-      if (!fIsSumPerChannelAvailable||fBaseRun->GetSumchan()==1){
+      if (!fIsDynSpecAvailable||fBaseRun->GetSumchan()==1){
 	bico1=normFactor*fBaseRun->GetChannelSignal((fBaseRun->GetNChannels()-1)-y)->GetSignal(int(floor(i+delta))%npoints);
 	bico2=normFactor*fBaseRun->GetChannelSignal((fBaseRun->GetNChannels()-1)-y)->GetSignal(int((floor(i+delta)+1))%npoints);
       }
-      if (fIsSumPerChannelAvailable) {
-	bico1=normFactor*fCompensatedSignalChannelSum[(fBaseRun->GetNChannels()-1)-y].GetSignal(int(floor(i+delta))%npoints);
-	bico2=normFactor*fCompensatedSignalChannelSum[(fBaseRun->GetNChannels()-1)-y].GetSignal(int((floor(i+delta)+1))%npoints);
+      if (fIsDynSpecAvailable) {
+	bico1=normFactor*fDynamicSpectrum[(fBaseRun->GetNChannels()-1)-y].GetSignal(int(floor(i+delta))%npoints);
+	bico2=normFactor*fDynamicSpectrum[(fBaseRun->GetNChannels()-1)-y].GetSignal(int((floor(i+delta)+1))%npoints);
       }
       float lowerBinFrac=1-((i+delta)-floor(i+delta));
       float upperBinFrac=1-lowerBinFrac;
@@ -89,8 +71,6 @@ int PulseExtractor::compensateDM()
 
     fCompensatedSignal.SetSignal(i-1,bico);
     fCompensatedSignalSum.SetSignal(i-1,bico);
-    //    std::cout<<"thread: "<<iThread<<"   bin index: "<<i-1<<"   value: "<<bico<<std::endl;
-    //    if (bico==bico) fHCompSig[iStep]->Fill(i-1,bico);
   }
     return 0;
 }
@@ -127,30 +107,34 @@ int PulseExtractor::fillSumProfile()
   fSumProfile.freq = fBaseRun->GetFreqLast();
 
   for (int i=0; i<fSumProfile.numpointwin; i++) fSumProfile.prfdata.push_back(0);
-
+  fSumProfile.nChan=fNChan;
+  fSumProfile.nChanAfterMask=fNChanAfterMask;
+  
   return 1;
 }
 
 int PulseExtractor::ReadMask(std::string fname)
 {
-  std::cout<<"read mask"<<std::endl;
+  std::cout<<"чтение маски из файла: "<<fname<<std::endl;
   std::ifstream fmask;
   fmask.open(fname.c_str());
   char tmp[100];
   int iband;
   float value;
+  int nActive=0;
   for (int i=0; i<512; i++){
     fmask>>iband>>value;
-    //std::cout<<iband<<std::endl;
+    if (value!=0) nActive++;
     fChannelMask[iband-1]=value;
   }
+  fNChanAfterMask=nActive;
   return 1;
 }
 
 int PulseExtractor::sumPeriods()
 {
-  std::cout<<"sum periods"<<std::endl;
-  if (!fIsSumPerChannelAvailable){
+  std::cout<<"суммирование периодов"<<std::endl;
+  if (!fIsDynSpecAvailable){
     for (int i=0; i<fBaseRun->GetNumpuls(); i++){
       for (int j=0; j<fBaseRun->GetNumpointwin(); j++){
 	fSumProfile.prfdata[j]+=fCompensatedSignal.GetSignal(i*fBaseRun->GetNumpointwin()+j);
@@ -164,7 +148,7 @@ int PulseExtractor::sumPeriods()
     }
   }
   
-  //subtract mean:
+  //subtract mean over sum profile (or median):
   for (int i=0; i<fSumProfile.prfdata.size(); i++){
     fSumProfile.prfdata[i]=fSumProfile.prfdata[i]-fCompensatedSignalSum.GetSignalMedian(0,1000000);
   }
@@ -174,7 +158,7 @@ int PulseExtractor::sumPeriods()
 
 int PulseExtractor::sumPerChannelPeriods()
 {
-  std::cout<<"sum per band periods"<<std::endl;
+  std::cout<<"суммирование периодов в каждом канале"<<std::endl;
   for (int k=0; k<fBaseRun->GetNChannels(); k++){
     std::vector<float> sums;
 
@@ -183,8 +167,7 @@ int PulseExtractor::sumPerChannelPeriods()
     for (int i=0; i<fBaseRun->GetNumpuls(); i++){
       for (int j=0; j<fBaseRun->GetNumpointwin(); j++){
 	sums[j]+=fBaseRun->GetChannelSignal(k)->GetSignal(i*fBaseRun->GetNumpointwin()+j);
-	//std::cout<<i<<"  "<<j<<"   "<<i*fBaseRun->GetNumpointwin()+j<<"   "<<fBaseRun->GetChannelSignal(k)->GetSignal(i*fBaseRun->GetNumpointwin()+j)<<std::endl;
-	fCompensatedSignalChannelSum[k].SetSignal(j,sums[j]);
+	fDynamicSpectrum[k].SetSignal(j,sums[j]);
       }
     }
   }
@@ -193,7 +176,6 @@ int PulseExtractor::sumPerChannelPeriods()
 
 int PulseExtractor::PrintSumProfile(std::string dirname)
 {
-  std::cout<<"print profile  "<<fBaseRun->GetNumpointwin()<<std::endl;
   std::ofstream sumProfileStream;
   char tmp[100];
   sprintf(tmp,"%s/%s.prf",dirname.c_str(),fBaseRun->GetRunID().c_str());
@@ -205,14 +187,13 @@ int PulseExtractor::PrintSumProfile(std::string dirname)
   for (int i=0; i<fBaseRun->GetNumpointwin(); i++){
     float time=fBaseRun->GetTau()*i;
     sumProfileStream<<i<<"     "<<fSumProfile.prfdata[i]<<"\n";
-    //    std::cout<<i<<"  "<<fSumProfile.prfdata[i]<<std::endl;
   }
+  std::cout<<"   суммарный профиль записан в файл: "<<tmp<<std::endl;
   return 1;
 }
 
 int PulseExtractor::PrintFrequencyResponse(std::string dirname)
 {
-  std::cout<<"print profile"<<std::endl;
   std::ofstream sumProfileStream;
   char tmp[100];
   sprintf(tmp,"%s/%s.fr",dirname.c_str(),fBaseRun->GetRunID().c_str());
@@ -224,9 +205,9 @@ int PulseExtractor::PrintFrequencyResponse(std::string dirname)
   for (int i=0; i<fBaseRun->GetNChannels(); i++){
     double freq=fBaseRun->GetFreqFirst()+i*(float)(fBaseRun->GetFreqLast()-fBaseRun->GetFreqFirst())/(float)fBaseRun->GetNChannels();
     freq+=0.00001;
-    //std::cout<<std::setprecision(7)<<"zz:   "<<fBaseRun->GetFreqFirst()<<"   "<<freq<<"   "<<fBaseRun->GetFreqLast()<<std::endl;
     sumProfileStream<<std::setprecision(7)<<freq<<"     "<<fBaseRun->GetFreqResponse(i)<<"\n";
   }
+  std::cout<<"   АЧХ записана в файл: "<<tmp<<std::endl;
   return 1;
 }
 
@@ -245,9 +226,8 @@ int PulseExtractor::printHeader(std::ofstream* stream)
   return 1;
 }
 
-int PulseExtractor::PrintPerChannelSumProfile(std::string dirname)
+int PulseExtractor::PrintChannelSumProfile(std::string dirname)
 {
-  std::cout<<"print per band profile"<<std::endl;
   std::ofstream sumProfileStream;
   char tmp[100];
   sprintf(tmp,"%s/bands_%s.prf",dirname.c_str(),fBaseRun->GetRunID().c_str());
@@ -260,17 +240,16 @@ int PulseExtractor::PrintPerChannelSumProfile(std::string dirname)
     float time=fBaseRun->GetTau()*i;
     sumProfileStream<<std::setw(6)<<time<<"        ";
     for (int j=0; j<512; j++){
-      sumProfileStream<<std::setw(6)<<fCompensatedSignalChannelSum[j].GetSignal(i)<<"         ";
+      sumProfileStream<<std::setw(6)<<fDynamicSpectrum[j].GetSignal(i)<<"         ";
     }
     sumProfileStream<<std::endl;
   }
-  
+  std::cout<<"   динамический спектр записан в файл: "<<tmp<<std::endl;
   return 1;
 }
 
 int PulseExtractor::PrintCompensatedImpulses(std::string dirname)
 {
-  std::cout<<"print comp impulse profile"<<std::endl;
   std::ofstream sumProfileStream;
   char tmp[100];
   sprintf(tmp,"%s/compPulses_%s.prf",dirname.c_str(),fBaseRun->GetRunID().c_str());
@@ -287,7 +266,7 @@ int PulseExtractor::PrintCompensatedImpulses(std::string dirname)
     }
     sumProfileStream<<std::endl;
   }
-  
+  std::cout<<"   массив индивидуальных импульсов записан в файл: "<<tmp<<std::endl;
   return 1;
 }
 
@@ -305,8 +284,8 @@ int PulseExtractor::SumPeriods()
 
 int PulseExtractor::SumPerChannelPeriods()
 {
-  if (fIsSumPerChannelAvailable) return 1;
-  fIsSumPerChannelAvailable=true;
+  if (fIsDynSpecAvailable) return 1;
+  fIsDynSpecAvailable=true;
   sumPerChannelPeriods();
   return 1;
 }
@@ -340,11 +319,10 @@ std::vector<float> PulseExtractor::GetCompensatedImpulseVec(int i)
 
 int PulseExtractor::removeSpikes()
 {
-  std::cout<<"removing spikes"<<std::endl;
+  std::cout<<"удаление шумовых пиков"<<std::endl;
   
   SignalContainer sumSigRef(fBaseRun->GetNPoints(),0,fBaseRun->GetNPoints()*fBaseRun->GetTau());
 
-  std::cout<<"ref"<<std::endl;
   //calculate reference signal sum with DM=0
   for (int y=0; y<fBaseRun->GetNChannels(); y++){
     if (fChannelMask[y]==0) continue;
@@ -363,14 +341,7 @@ int PulseExtractor::removeSpikes()
       median=sumSigRef.GetSignalMedian(0, i+5);
       variance=sumSigRef.GetSignalVariance(0, i+5);
     }
-    /*
-    else if (i>fBaseRun->GetNPoints()-5) {
-      median=sumSigRef.GetSignalMedian(i-5, i+5);
-      variance=sumSigRef.GetSignalVariance(i-5, i+5);
-    }
-    */
     if (fabs(sumSigRef.GetSignal(i)-median)/variance > 5) {
-      //      std::cout<<"got spike"<<std::endl;
       fSpikeMask[i]=0;
       for (int y=0; y<fBaseRun->GetNChannels(); y++){
 	fBaseRun->GetChannelSignal(y)->SetSignal(i,median/fBaseRun->GetNChannels());
@@ -382,7 +353,7 @@ int PulseExtractor::removeSpikes()
 
 int PulseExtractor::frequencyFilter()
 {
-  std::cout<<"clean frequency response"<<std::endl;
+  std::cout<<"удаление зашумленных каналов"<<std::endl;
   SignalContainer buf(fBaseRun->GetNChannels(),0,fBaseRun->GetNChannels());
   for (int i=0; i<fBaseRun->GetNChannels(); i++){
     buf.SetSignal(i,fBaseRun->GetFreqResponse(i));
@@ -395,13 +366,22 @@ int PulseExtractor::frequencyFilter()
     }
     else if (i<5) med=buf.GetSignalMedian(0,i+5);
     else if (i>fBaseRun->GetNChannels()-5) med=buf.GetSignalMedian(i-5,100000);
-    if (fabs(buf.GetSignal(i)-med)/variance>5) fChannelMask[i]=0;
+    if (fabs(buf.GetSignal(i)-med)/variance>5) {
+      fChannelMask[i]=0;
+    }
   }
+  int nActive=0;
+  for (int i=0; i<fNChan; i++){
+    if (fChannelMask[i]!=0) nActive++;
+  }
+  fNChanAfterMask=nActive;
+  
   return 1;
 }
 
 int PulseExtractor::FillMaskFRweights()
 {
+  std::cout<<"вычисление весов каналов по АЧХ"<<std::endl;
   float frmean=0;
   float frweight;
   int nchan=0;
@@ -428,4 +408,14 @@ int PulseExtractor::CleanFrequencyResponse()
 {
   frequencyFilter();
   return 1;
+}
+
+
+std::vector<float> PulseExtractor::GetChannelSumProfile(int iChan)
+{
+  std::vector<float> rVec;
+  for (int i=0; i<fBaseRun->GetNumpointwin(); i++){
+    rVec.push_back(fDynamicSpectrum[iChan].GetSignal(i));
+  }
+  return rVec;
 }

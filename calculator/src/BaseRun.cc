@@ -23,7 +23,7 @@ double readNumber(char* buffer, int iStart, int N0, int N1)
   return returnValue;
 }
 
-double readNumberMod(char* buffer, int iStart, int N)
+long double readNumberMod(char* buffer, int iStart, int N)
 {
   std::vector<int> integer;
   std::vector<int> decimal;
@@ -42,14 +42,16 @@ double readNumberMod(char* buffer, int iStart, int N)
       //      std::cout<<"testDec1: "<<chToNum(buffer[iStart+i])<<std::endl;
     }
   }
-  float number=0;
+  long double number=0;
   for (int i=0; i<integer.size(); i++){
-    number += pow(10,i)*integer[integer.size()-1-i];
+    if (integer[integer.size()-1-i]>0) number += pow(10,i)*(integer[integer.size()-1-i]);
+    //   if (integer[integer.size()-1-i]==0) i++;
   }
-  float dec=0;
+  long double dec=0;
   for (int i=0; i<decimal.size(); i++){
-    dec += pow(10,-i-1)*decimal[i];
-    //    std::cout<<"testdec2: "<<pow(10,-i-1)*decimal[i]<<std::endl;
+    if (decimal[i]>0) dec += pow(10,-i-1)*decimal[i];
+    //  if (decimal[i]==0) i++;
+    //   std::cout<<"testdec2: "<<pow(10,-i-1)*decimal[i]<<std::endl;
   }
   number+=dec;
   return number;
@@ -64,7 +66,7 @@ int convertStringParam(std::string IN, bool* OUT)
   return returnValue;
 }
 */
-
+/*
 //OLD FUNCTION (02.08.17)
 float pulseToFloat(unsigned int pulse, float tau)
 {
@@ -76,8 +78,8 @@ float pulseToFloat(unsigned int pulse, float tau)
   spectr=spectr*std::pow(2,exp)/ratio;
   return spectr;
 }
+*/
 
-/*
 float pulseToFloat(unsigned int pulse, float tau)
 {
   float exp,spectr_t;
@@ -102,7 +104,7 @@ float pulseToFloat(unsigned int pulse, float tau)
   
   return spectr_t;
 }
-*/
+
 BaseRun::BaseRun()
 {
   fTelcode="bsa1";
@@ -124,13 +126,16 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   std::string fname = rawdata_dir+"/"+runID;
   std::ifstream data(fname.c_str(),std::ios::binary|std::ios::in);
   
-  std::cout<<"READING RAW RUN "<<runID<<"    path: "<<fname<<std::endl;
+  std::cout<<"чтение сеанса "<<runID<<" из директории: "<<fname<<std::endl;
    //read header
   int length = 40; 
   char * buffer = new char [length];
   int sizeHeader;
 
-  //      std::cout<<"READING HEADER"<<std::endl;
+  std::cout<<"заголовочная часть:"<<std::endl;
+
+  std::cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"<<std::endl;
+
   for (int k=0; k<13; k++)
     {
       // std::cout << "Reading " << length << " characters... "<<std::endl;
@@ -139,15 +144,11 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       //  int size = data.tellg();
       sizeHeader = data.tellg();
       std::cout<<k<<"   "<<buffer<<std::endl;
-      //     for (int q=0; q<length; q++)
-      //	{
-	  //	  std::cout<<q<<":"<<buffer[q]<<" ";
-      //	}
       
       //read period (in s)
       if (k==4)	{
-	fPeriod=readNumberMod(buffer,13,11);
-	//	std::cout<<std::setprecision(11)<<"period: "<<fPeriod<<std::endl;
+	fPeriod=readNumberMod(buffer,13,15);
+	std::cout<<std::setprecision(20)<<"period: "<<fPeriod<<std::endl;
       }
       
       if (k==9) {
@@ -214,7 +215,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	fUtcyear=readNumber(buffer,19,2,0);
 	fUtchour=readNumber(buffer,22,2,0);
 	fUtcmin=readNumber(buffer,25,2,0);
-	fUtcsec=readNumber(buffer,28,2,0)+1e-9*readNumber(buffer,31,7,0);
+	fUtcsec=readNumber(buffer,28,2,0)+1e-7*readNumber(buffer,31,7,0);
 	//	fUtcsec=readNumber(buffer,28,2,0);
 	//	fUtcnsec=readNumber(buffer,31,7,0);
       }
@@ -226,7 +227,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       if (k==3){
 	fHour=readNumber(buffer,13,2,0);
 	fMinute=readNumber(buffer,16,2,0);
-	fSec=readNumber(buffer,19,2,0)+1e-9*readNumber(buffer,23,7,0);
+	fSec=readNumber(buffer,19,2,0)+1e-7*readNumber(buffer,23,7,0);
 	//	fSecond=readNumber(buffer,19,2,0);
 	//	fNsec=readNumber(buffer,23,7,0);
       }
@@ -239,8 +240,8 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   //  TH1F sigTimeProfile[512];
   std::vector<float> freqResponse;
   //  std::vector<SignalContainer> perChannelSignal;
-  std::cout<<"READING DATA    numPeriods: "<<fNumpuls<<"   binsPerPeriod: "<<fNumpointwin<<"   tau: "<<fTau<<std::endl;
-   //	   <<"   tau: "<<fTau<<"   period: "<<fPeriod<<"  fDay: "<<fDay<<"  fSec: "<<fSecond<<"\n"
+  //  std::cout<<"READING DATA    numPeriods: "<<fNumpuls<<"   binsPerPeriod: "<<fNumpointwin<<"   tau: "<<fTau<<std::endl;
+  //	   <<"   tau: "<<fTau<<"   period: "<<fPeriod<<"  fDay: "<<fDay<<"  fSec: "<<fSecond<<"\n"
   //	   <<"     fre0: "<<fFreq0<<"   freq511: "<<fFreq511<<std::endl;
   // int lengthData= 8*sizeof(uint32_t);
   int lengthData = sizeof(uint32_t);

@@ -11,25 +11,24 @@ struct SumProfile {
 
   int sumchan;
   
+  int nChan;
+  int nChanAfterMask;
+  
   int year; //дата наблюдений, соответствует date в файле данных БСА
   int month;
   int day;
   int hour; //время в текущей шкале локального стандарта, соответствует time hh:mm:ss
   int min;
-  float sec;
-  //  int sec;
-  //  int nsec; //time в 100 нс 
+  long double sec;
 
   int utcday;
   int utcmonth;
   int utcyear;
   int utchour; //время в истиной шкале локального стандарта, dt_utc hh:mm:ss - для БСА соответствует UTC+3 часа
   int utcmin;
-  float utcsec;
-  //  int utcsec;
-  //  int utcnsec; //dt_utc в 100 нс 
+  long double utcsec;
   
-  float period; // период пульсара в секундах
+  long double period; // период пульсара в секундах
   int numpuls; // число импульсов, сложенных в данном суммарном профиле
   
   float tau; // дискрет отсчета в миллисекундах, соотв. переменной tay в файле данных БСА
@@ -57,26 +56,28 @@ class PulseExtractor : BaseRun
   int SumPerChannelPeriods(); // функция суммирует периоды для каждой из частот
   
   float GetDM() {return fDM;}
-  int PrintFrequencyResponse(std::string outdir); // распечатать АЧХ (средний сигнал на частоте) в файл с именем outdir/<номер сеанса>.fr
-  int PrintSumProfile(std::string outdir);   // распечатать суммарный профиль в файл с именем outdir/<номер сеанса>.prf
-  int PrintPerChannelSumProfile(std::string outdir); // распечатать суммарный профиль  для каждой из частот в файл с именем outdir/bands_<номер сеанса>.prf
-  int PrintCompensatedImpulses(std::string outdir);
+  int PrintFrequencyResponse(std::string outdir); // записать АЧХ (средний сигнал на частоте) в файл с именем outdir/<номер сеанса>.fr
+  int PrintSumProfile(std::string outdir);   // записать суммарный профиль в файл с именем outdir/<номер сеанса>.prf
+  int PrintChannelSumProfile(std::string outdir); // записать суммарный профиль для каждого частотного канала в файл с именем outdir/bands_<номер сеанса>.prf
+  int PrintCompensatedImpulses(std::string outdir);  //записать в файл набор компенсированных импульсов до fBasRun->GetNumpuls() 
 
-  SumProfile GetSumProfile() {return fSumProfile;} // получить структуру, описанную выше
+  SumProfile GetSumProfile() {return fSumProfile;} // получить структуру, описанную в начале этог файла
 
   std::vector<float> GetSumPeriodsVec(); // получить суммарный профиль в виде вектора
 
-  SignalContainer GetCompensatedImpulse(int i); // get i-th impulse, max i is fNumpuls
-  std::vector<float> GetCompensatedImpulseVec(int i); // get i-th impulse as vector, max i is fNumpuls
+  std::vector<float> GetChannelSumProfile(int iChan); //получить суммарный профиль для частотного канала iChan 
+  
+  SignalContainer GetCompensatedImpulse(int i); // получить i-й компенсированный импульс
+  std::vector<float> GetCompensatedImpulseVec(int i); // получить i-й компенсированный импульс как вектор
 
-  int FillMaskFRweights();
+  int FillMaskFRweights();  // заполняются веса частотных каналов в маске. Определяется среднее значение сигнала по всем частотам, M, вес для канала определен так: w=pow(m(f)/M, -1)
   
   int ReadMask(std::string fname); // считать маску частот
   int SetChannelMask(std::vector<float> mask) {fChannelMask=mask;} // задать маску
-  std::vector<float> GetChannelMask() {return fChannelMask;}
+  std::vector<float> GetChannelMask() {return fChannelMask;} // получить маску в виде вектора
   
-  int RemoveSpikes();
-  int CleanFrequencyResponse();
+  int RemoveSpikes();   // удалить шумовые импульсы, частотные каналы складываются с dm=0, выбросы > 5sigma заменяются на медианное значение подложки
+  int CleanFrequencyResponse();  //удалить зашемленные частоты, выбросы на АЧХ по модулю > 5 sigma добавляются в маску с весом 0
   
 
  private:
@@ -84,7 +85,7 @@ class PulseExtractor : BaseRun
   float fDM;
   SignalContainer fCompensatedSignal;
   SignalContainer fCompensatedSignalSum;
-  std::vector<SignalContainer> fCompensatedSignalChannelSum;
+  std::vector<SignalContainer> fDynamicSpectrum;
   SumProfile fSumProfile;
   int compensateDM();
   int sumPeriods();
@@ -97,7 +98,10 @@ class PulseExtractor : BaseRun
   
   std::vector<float> fChannelMask;
 
-  bool fIsSumPerChannelAvailable;
+  bool fIsDynSpecAvailable;
   
-  std::vector<int> fSpikeMask;  
+  std::vector<int> fSpikeMask;
+
+  int fNChan;
+  int fNChanAfterMask;
 };

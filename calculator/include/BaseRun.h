@@ -8,6 +8,8 @@
 #include <string.h>
 #include "SignalContainer.h"
 
+//базовый класс для хранения данных о сеансе наблюдения пульсара
+
 class BaseRun
 {
   
@@ -75,36 +77,35 @@ class BaseRun
   int fUtcmin;
   //  int fUtcsec;
   //  int fUtcnsec;
-  double fUtcsec;
+  long double fUtcsec;
 
-  //temporary, it should be in the upper level run class
-  double fPeriod;
-  int fNumpuls;
-  int fNumpointwin;
+  long double fPeriod;   //период пульсара
+  int fNumpuls;          //число наблюденных импульсов
+  int fNumpointwin;      //число измерений сигнала на импульс
   ////////////////
   
-  int fNChannels;       //number of bands
-  float fFreqFirst;  //lowest frequency MHz
-  float fFreqLast;   //highest frequency MHz
-  float fWLFirst;    //longest wavelength m
-  float fWLLast;     //shortest wavelength m
-  float fTau;        //integration time s
-  float fNPoints;    //number of measurements in the run
-  float fDuration;   //duration in seconds
+  int fNChannels;       //число каналов
+  float fFreqFirst;  //низкая частота MHz
+  float fFreqLast;   //высокая частота MHz
+  float fWLFirst;    //большая длина волны m
+  float fWLLast;     //маленькая длина волны m
+  float fTau;        //время интегрирования сигнала s
+  float fNPoints;    //число измерений сигнала в сеансе
+  float fDuration;   //продолжительность сеанса
   //start time: 
-  int fDay;
+  int fDay; 
   int fMonth;
   int fYear;
   int fHour;
   int fMinute;
-  double fSec;
+  long double fSec;
   //  int fSecond;
   //  int fNsec;
   float fDM;
 
   std::string fRunID;
   
-  std::vector<SignalContainer> fPerChannelSignal;
-  std::vector<float> fFreqResponse;
+  std::vector<SignalContainer> fPerChannelSignal;         // хранилище первичного сигнала
+  std::vector<float> fFreqResponse;			  // АЧХ
   std::vector<float> fFreqResponseMedian;
 };
