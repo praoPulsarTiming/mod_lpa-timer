@@ -148,7 +148,6 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       //read period (in s)
       if (k==4)	{
 	fPeriod=readNumberMod(buffer,13,15);
-	std::cout<<std::setprecision(20)<<"period: "<<fPeriod<<std::endl;
       }
       
       if (k==9) {
@@ -286,17 +285,19 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   
   for (int i=0; i<512; i++){
     fFreqResponse.push_back(fPerChannelSignal[i].GetSignalMean(0,1000000));
+    //    std::cout<<i<<"     "<<fPerChannelSignal[i].GetSignalMean(0,1000000)<<std::endl;
     fFreqResponseMedian.push_back(fPerChannelSignal[i].GetSignalMedian(0,1000000));
   }
 
-  for (int i=0; i<512; i++){
-    fFreqResponse.push_back(fPerChannelSignal[i].GetSignalMean(0,1000000));
-    for (int j=0; j<fNPoints; j++){
+  //  for (int i=0; i<512; i++){
+    //    fFreqResponse.push_back(fPerChannelSignal[i].GetSignalMean(0,1000000));
+    //    for (int j=0; j<fNPoints; j++){
       //std::cout<<i<<"    "<<j<<"     "<<fPerChannelSignal[i].GetSignal(j)<<"    "<<pow(fFreqResponse[i],-1)<<"    "<<fPerChannelSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1)<<"    "<<fFreqResponseMedian[i]<<std::endl;
-      fPerChannelSignal[i].SetSignal(j,fPerChannelSignal[i].GetSignal(j)*pow(fFreqResponse[i],-1));
+      //fPerChannelSignal[i].SetSignal(j,fPerChannelSignal[i].GetSignal(j)
+				     //*pow(fFreqResponse[i],-1));
       //fPerChannelSignal[i].SetSignal(j,fPerChannelSignal[i].GetSignal(j)-fFreqResponseMedian[i]);
-    }
-  }
+    //    }
+  //  }
   
   data.close();
   delete fileContents;

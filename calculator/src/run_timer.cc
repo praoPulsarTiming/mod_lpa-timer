@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
     pulse.FillMaskFRweights();
 
     // фильтры на данный момент отсутствуют (13.07.17)
-    if (conf.doFRfiltering) pulse.CleanFrequencyResponse();
-    if (conf.doRemoveSpikes) pulse.RemoveSpikes();
+    if (conf.doFRfiltering) pulse.CleanFrequencyResponse(conf.nVarFR);
+    if (conf.doRemoveSpikes) pulse.RemoveSpikes(conf.nVarSpike);
     
     if (!conf.getIndImpulses){
       pulse.SumPerChannelPeriods();

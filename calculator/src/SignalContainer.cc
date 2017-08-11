@@ -92,12 +92,14 @@ float SignalContainer::GetSignalVariance(int b0, int b1)
 {
   float rms=0;
   if (fSignalVector.size()==0) return rms;
-  float mean=GetSignalMean(0,1e8);
+  float mean=GetSignalMean(b0,b1);
   for (int i=b0; i<=b1; i++){
     rms+=pow(mean-fSignalVector[i],2);
   }
+  //  std::cout<<"getvar1:   "<<mean<<"      "<<rms<<std::endl;
   rms=(float)rms/(float)(b1-b0+1);
-  return rms;
+  //  std::cout<<"getvar2:   "<<rms<<std::endl;
+  return sqrt(rms);
 }
 
 float SignalContainer::GetTime(int iBin)

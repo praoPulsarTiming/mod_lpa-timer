@@ -76,8 +76,8 @@ class PulseExtractor : BaseRun
   int SetChannelMask(std::vector<float> mask) {fChannelMask=mask;} // задать маску
   std::vector<float> GetChannelMask() {return fChannelMask;} // получить маску в виде вектора
   
-  int RemoveSpikes();   // удалить шумовые импульсы, частотные каналы складываются с dm=0, выбросы > 5sigma заменяются на медианное значение подложки
-  int CleanFrequencyResponse();  //удалить зашемленные частоты, выбросы на АЧХ по модулю > 5 sigma добавляются в маску с весом 0
+  int RemoveSpikes(float nVar);   // удалить шумовые импульсы, частотные каналы складываются с dm=0, выбросы > nVar*sigma заменяются на медианное значение подложки
+  int CleanFrequencyResponse(float nVar);  //удалить зашемленные частоты, выбросы на АЧХ по модулю > nVar*sigma добавляются в маску с весом 0
   
 
  private:
@@ -93,8 +93,8 @@ class PulseExtractor : BaseRun
   int fillSumProfile();
   int printHeader(std::ofstream* str);
 
-  int removeSpikes();
-  int frequencyFilter();
+  int removeSpikes(float);
+  int frequencyFilter(float);
   
   std::vector<float> fChannelMask;
 

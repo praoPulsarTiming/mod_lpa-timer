@@ -9,6 +9,8 @@ struct ConfigParam{
   bool getIndImpulses;
   bool getFR;
   float utccorr;
+  float nVarFR;
+  float nVarSpike;
   std::vector<std::string> runs;
 };
 
@@ -43,6 +45,7 @@ ConfigParam ReadConfig(std::string cname)
   std::string sRemoveSpikes, sFRfilter;
   std::string sGetDynSpectrum, sGetIndImpulses, sGetFR;
   float utccor;
+  float nVarFR, nVarSpike;
   flist>>confParam;
   while(confParam!="runs:"){		 
     //    std::cout<<confParam<<std::endl;
@@ -55,6 +58,8 @@ ConfigParam ReadConfig(std::string cname)
     else if (confParam=="getDynSpectrum") flist>>sGetDynSpectrum;
     else if (confParam=="getIndImpulses") flist>>sGetIndImpulses;
     else if (confParam=="getFR") flist>>sGetFR;
+    else if (confParam=="FRcleaningCut") flist>>nVarFR;
+    else if (confParam=="SpikeCleaningCut") flist>>nVarSpike;
     else if (confParam=="utcCorrection") flist>>utccorr;
     flist.getline(tmp,100,'\n');
     flist>>confParam;
@@ -74,7 +79,8 @@ ConfigParam ReadConfig(std::string cname)
   output.getDynSpectrum=bGetDynSpectrum;
   output.getIndImpulses=bGetIndImpulses;
   output.getFR=bGetFR;
-
+  output.nVarFR=nVarFR;
+  output.nVarSpike=nVarSpike;
 //  std::cout<<"PARAMS: "<<bRemoveSpikes<<"  "<<bFRfilter<<"  "<<bGetDynSpectrum<<"  "<<bGetIndImpulses<<std::endl;
   
   std::string rID;
