@@ -86,6 +86,9 @@ int PulseExtractor::fillSumProfile()
 
   fSumProfile.sumchan = fBaseRun->GetSumchan();
 
+  fSumProfile.nChan=fNChan;
+  fSumProfile.nChanAfterMask=fNChanAfterMask;
+  
   fSumProfile.year = fBaseRun->GetYear();
   fSumProfile.month = fBaseRun->GetMonth();
   fSumProfile.day = fBaseRun->GetDay();
@@ -128,7 +131,7 @@ int PulseExtractor::ReadMask(std::string fname)
     fChannelMask[iband-1]=value;
   }
   fNChanAfterMask=nActive;
-  std::cout<<"active channels: "<<nActive<<std::endl;
+  //  std::cout<<"active channels: "<<nActive<<std::endl;
   return 1;
 }
 
@@ -243,6 +246,7 @@ int PulseExtractor::printHeader(std::ofstream* stream)
   *stream<<"time: "<<fSumProfile.hour<<":"<<fSumProfile.min<<":"<<std::setprecision(7)<<fSumProfile.sec<<"\n";
   *stream<<"utctime: "<<fSumProfile.utchour<<":"<<fSumProfile.utcmin<<":"<<std::setprecision(8)<<fSumProfile.utcsec<<"\n";
   *stream<<"frequency: "<<std::setprecision(7)<<fSumProfile.freq<<"\n";
+  *stream<<"N used channels: "<<fSumProfile.nChanAfterMask<<"\n";
   return 1;
 }
 
@@ -347,7 +351,7 @@ int PulseExtractor::removeSpikes(float nVar)
   for (int y=0; y<fBaseRun->GetNChannels(); y++){
     if (fChannelMask[y]==0) continue;
     for (int i=0; i<fBaseRun->GetNPoints(); i++){
-      sumSigRef.SetSignal(i,sumSigRef.GetSignal(i)+fBaseRun->GetChannelSignal(y)->GetSignal(i));
+      sumSigRef.SetSignal(i,sumSigRef.GetSignal(i)+fBaseRun->GetChannelSignal(y)->GetSignal(i)*fChannelMask[y]);
     }
   }
   //find spikes
@@ -363,11 +367,14 @@ int PulseExtractor::removeSpikes(float nVar)
     }
     //    std::cout<<"spikeFinder:   "<<i<<"   "<<median<<"      "<<variance<<"       "<<sumSigRef.GetSignal(i)<<std::endl;
     if (fabs(sumSigRef.GetSignal(i)-median)/variance > nVar) {
+      //      std::cout<<"FOUND SPIKE"<<std::endl;
+      //      std::cout<<" before filter:     "<<fBaseRun->GetChannelSignal(100)->GetSignal(i)<<std::endl;
       fSpikeMask[i]=0;
       //      std::cout<<"FOUND SPIKE"<<std::endl;
       for (int y=0; y<fBaseRun->GetNChannels(); y++){
-	fBaseRun->GetChannelSignal(y)->SetSignal(i,median/fBaseRun->GetNChannels());
+	fBaseRun->GetChannelSignal(y)->SetSignal(i,pow(fChannelMask[y],-1)*median/fBaseRun->GetNChannels());
       }
+      //      std::cout<<" after filter:    "<<fBaseRun->GetChannelSignal(100)->GetSignal(i)<<std::endl;
     }
   }
   return 1;
@@ -450,7 +457,7 @@ std::vector<float> PulseExtractor::GetChannelSumProfile(int iChan)
 {
   std::vector<float> rVec;
   for (int i=0; i<fBaseRun->GetNumpointwin(); i++){
-    rVec.push_back(fDynamicSpectrum[iChan].GetSignal(i));
+    rVec.push_back(fDynamicSpectrum[iChan].GetSignal(i)*fChannelMask[iChan]);
   }
   return rVec;
 }

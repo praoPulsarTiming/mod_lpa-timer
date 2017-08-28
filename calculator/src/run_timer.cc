@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
     //  считываем маску
     pulse.ReadMask("examples/channel_mask.dat");
 
+    
     pulse.FillMaskFRweights();
 
     // фильтры на данный момент отсутствуют (13.07.17)
@@ -73,6 +74,7 @@ int main(int argc, char *argv[])
 	pulse.PrintChannelSumProfile(conf.output_dir.c_str());
       }
     }
+    
     /*
     // суммируем периоды для каждой из частот
     if (conf.getDynSpectrum) {
@@ -82,6 +84,7 @@ int main(int argc, char *argv[])
       pulse.DoCompensation();
     }
     */
+    
     // суммируем периоды для компенсированных данных
     pulse.SumPeriods();
 
@@ -98,10 +101,9 @@ int main(int argc, char *argv[])
 
     // получить суммарный импульс в виде вектора
     //std::vector<float> sumpuls=pulse.GetSumPeriodsVec();
-  
 
     // СЮДА МОЖНО ДОБАВЛЯТЬ КОД ДЛЯ КРОСС-КОРРЕЛЯЦИИ
-
+    
     
   }
   std::cout<<"работа программы успешно завершена"<<std::endl;

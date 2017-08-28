@@ -121,6 +121,8 @@ BaseRun::~BaseRun()
 
 int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir)
 {
+  fPerChannelSignal.clear();
+  
   fRunID=runID;
 
   std::string fname = rawdata_dir+"/"+runID;
@@ -255,7 +257,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   int iFreq=0;
   int iPeriod=0;
 
-    for (int i=0; i<512; i++){
+  for (int i=0; i<512; i++){
     fPerChannelSignal.push_back(SignalContainer(fNPoints,0,fDuration));
   }
   while(data.good())
