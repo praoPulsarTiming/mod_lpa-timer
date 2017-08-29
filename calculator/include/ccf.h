@@ -86,8 +86,6 @@ int KKFWrite(std::string output_dir, Skkf kkf);   // запись данных �
 
 int KKFdatWrite(std::string output_dir, Skkf kkf, std::string runs);   // запись данных по кросс-корреляции в файлы kkfdat - график и kkf - результат вписывания
 
-int utc2mjdi(SumProfile finPulse, float utcloc); // возвращает целое число MJD
-
 std::string utc2mjds(SumProfile finPulse, float utcloc, float dtkkf); // возвращает MJD как строку
 
 }; //end class Cor

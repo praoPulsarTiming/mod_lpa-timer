@@ -31,12 +31,14 @@ float dummy;
 float maxkkf;
 int maxi;
 float startdelay; // задержка после времени старта указанной в протоколе в мкс, для ЦПП-DPP1=1 дискрету
+float CMprf, CMtpl;             // центры масс профиля и шаблона
 
 kkf.numpoint=finPulse.numpointwin; // присвоение длины ккф в структуре
 tpl = Tplread(tplfile);            // считывкание файла шаблона из файла 'tplfile'
 
 
 kkf.kkfdata=dccf(tpl,finPulse); // вычисление дискретной ККФ и запись в структуру Skkf
+
 
 maxkkf=kkf.kkfdata[0]; 
 maxi=0;
@@ -53,16 +55,18 @@ for (int i=0; i<5; i++) kkf.kk.push_back(kkf.kkfdata[maxi-2+i]);
 
 if (!strcmp(finPulse.rtype.c_str(),"DPP1")) startdelay=1000.*dt; else startdelay=0.;
 
+CMprf= CofM(finPulse.prfdata, finPulse.numpointwin, finPulse.tau);
+std::cout << "Центр Масс профиля:   " << CMprf << std::endl; 
+CMtpl = CofM(tpl.tpldata, tpl.numpoint, tpl.tau);
+std::cout << "Центр Масс шаблона:   " << CMtpl << std::endl; 
 
-kkf.maxp=startdelay+1000.*dt*(maxi+ApproxMax(kkf.kk[0], kkf.kk[1],kkf.kk[2],kkf.kk[3],kkf.kk[4]));
+
+if (CMprf >= CMtpl) kkf.maxp=startdelay+1000.*dt*(maxi+ApproxMax(kkf.kk[0], kkf.kk[1],kkf.kk[2],kkf.kk[3],kkf.kk[4]));
+	else kkf.maxp=-1000.*finPulse.numpointwin*finPulse.tau+startdelay+1000.*dt*(maxi+ApproxMax(kkf.kk[0], kkf.kk[1],kkf.kk[2],kkf.kk[3],kkf.kk[4]));
 
 itoa.TOAMJD = utc2mjd(finPulse, utcloc, kkf.maxp); // расчет MJD.MJD и запись в структуру Itoa
 
-// itoa.sMJD = utc2mjds(finPulse, utcloc, kkf.maxp);
-
-// std::cout << "ВЫВОД ЗНАЧЕНИЙ MJD СТРОКОЙ:" <<  std::endl;
-
-// std::cout << itoa.sMJD <<  std::endl;
+itoa.sMJD = utc2mjds(finPulse, utcloc, kkf.maxp);
 
 kkf.snr = SNR(finPulse);
 kkf.errmax = CalcErrorW50(finPulse, kkf.snr);
@@ -99,7 +103,7 @@ kkfdatyes=KKFdatWrite(output_dir, kkf, runs);
 
 
 
-// функция расчета MJD.MJD из даты, возвращает структуру Fmjd: целая и дробная часть MJD
+// функция расчета MJD.MJD из даты, возвращает mjd в формате long double
 //******************************************************************************
 // dtkkf - сдвиг профиля относительно шаблона (максимум ККФ) в микросекундах
 
@@ -131,6 +135,7 @@ return mjd;
 }
 
 //******************************************************************************
+// функция расчета MJD.MJD из даты, возвращает mjd в формате string
 
 std::string Cor::utc2mjds(SumProfile finPulse, float utcloc, float dtkkf)
 {
@@ -144,7 +149,7 @@ int imjd;
 long double fmjd;
 long double mjd;
 std::string smjd;
-
+char tmp[100];
 
 if (hh < 0) {hh+=24; dd-=dd;} // переход через сутки если по гринвичу не наступила текущая дата
 
@@ -156,36 +161,15 @@ fmjd=hh/24.+min/1440.+ss/86400.+dtkkf/86400./1000000.; // расчет дроб�
 mjd=imjd+fmjd;
 
 //smjd << mjd;
-sprintf ("%25.13llf \n ",smjd.c_str(), mjd);
+//sprintf ("%25.13llf \n ",smjd.c_str(), mjd);
 
+sprintf(tmp,"%19.13llf",tmp,mjd);
+for (int i=0; i<19; i++) smjd.push_back(tmp[i]);
+smjd.push_back('\0');
 return smjd;
 
 }
 
-
-
-
-//******************************************************************************
-// Вычисление целой части MJD
-
-int Cor::utc2mjdi(SumProfile finPulse, float utcloc)
-
-{
-int yy=2000+finPulse.utcyear; // yy+2000 - т.к. формат года в dutc - двузначный
-int mm=finPulse.utcmonth;
-int dd=finPulse.utcday;
-int hh=finPulse.utchour-utcloc;
-int imjd;
-
-if (hh < 0) {hh+=24; dd-=dd;} // переход через сутки если по гринвичу не наступила текущая дата
-
-imjd=367*yy-7*(yy+(mm+9)/12)/4-3*((yy+(mm-9)/7)/100+1)/4 // расчет целого числа MJD
-        +275*mm/9+dd+1721028-2400000;					 
-
-return imjd;
-}
-
-//******************************************************************************
 
 
 
@@ -275,8 +259,26 @@ float cm;
 float mass;
 cm=0;
 mass=0;
-for (int i=0; i<datalength; i++) {mass+=data[i];};
-for (int i=0; i<datalength; i++) {cm=+data[i]*dt*i;};
+float min,max;
+
+float d[datalength];
+for (int i=0; i<datalength-1; i++) d[i]=data[i];
+
+d[datalength]=0;
+
+min=0;
+min=max;
+
+//for (int i=0; i<datalength-1; i++)
+//	{
+//	if (max <= d[i]) max=d[i];
+//	if (min >= d[i]) min=d[i];
+//	}
+//for (int i=0; i<datalength-1; i++) d[i]=(d[i]-min)/(max-min); // вычитание 0 и нормировка на 1
+
+
+for (int i=0; i<datalength; i++) {mass=mass+d[i];};
+for (int i=0; i<datalength; i++) {cm=cm+d[i]*dt*i*1000.;};
 cm=cm/mass;
 return cm;
 }
@@ -292,37 +294,36 @@ Cor cor;
 int ntpl = tpl.numpoint;         // число точек в шаблоне
 int np = prf.numpointwin;   // число точек в профиле     
 std::vector<float> d;            // дискретная ккф
-int kkflen = np;                     // длина массива ККФ если массив профиля > массива шаблона
+int kkflen = np;                     // длина массива ККФ по умолчанию если массив профиля > массива шаблона = длине профиля
 float min,max;
 float kkfarr[kkflen];            // массив для корреляции 
 float swap;
 float pr[np];                   // временный массив с профилем
-float CMprf, CMtpl;             // центры масс профиля и шаблона
+
 
 for (int i=0; i<kkflen; i++) kkfarr[i]=0; // инициализация массивов
 for (int i=0; i<np; i++) pr[i]=prf.prfdata[i]; 
 
 pr[np-1]=pr[np-2]; // устранение вероятного '0' в последней точке профиля
 
-CMprf= CofM(prf.prfdata, prf.numpointwin, prf.tau);
-//CMtpl = CofM(tpl.tpldata, tpl.numpoint, tpl.tau);
 
-for (int i=0; i<kkflen-1; i++)    // расчет ККФ 
-	{
-	swap=pr[0];        // циклический сдвиг массива влево (предполагается профиль справа от шаблона)
-	for (int k=0; k<kkflen-2; k++) pr[k]=pr[k+1]; 
+for (int i=0; i<kkflen; i++)    // расчет ККФ 
+	{          
+	for (int j=0; j<ntpl; j++) kkfarr[i]=kkfarr[i]+tpl.tpldata[j]*pr[j]/ntpl; // расчет ккф
+	swap=pr[0];        // циклический сдвиг массива влево
+	for (int k=0; k<kkflen-1; k++) pr[k]=pr[k+1]; 
 	pr[kkflen-1]=swap;
-	for (int j=0; j<ntpl; j++) kkfarr[i]+=tpl.tpldata[j]*pr[j]/ntpl; // расчет ккф
 	};
+
 max=kkfarr[0];
 min=max;
-for (int i=0; i<kkflen-1; i++)
+for (int i=0; i<kkflen; i++)
 	{
 	if (max <= kkfarr[i]) max=kkfarr[i];
  	if (min >= kkfarr[i]) min=kkfarr[i];
 	}
-for (int i=0; i<kkflen-1; i++) kkfarr[i]=(kkfarr[i]-min)/(max-min); // вычитание 0 и нормировка на 1
-for (int i=0; i<kkflen-1; i++) d.push_back(kkfarr[i]);              // возврат значения в вектор
+for (int i=0; i<kkflen; i++) kkfarr[i]=(kkfarr[i]-min)/(max-min); // вычитание 0 и нормировка на 1
+for (int i=0; i<kkflen; i++) d.push_back(kkfarr[i]);              // возврат значения в вектор
 return d;
 }; 
 
