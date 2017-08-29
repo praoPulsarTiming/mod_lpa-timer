@@ -1,5 +1,6 @@
 //#include "BaseRun.h"
-#include "PulseExtractor.h"
+//#include "PulseExtractor.h"
+#include "ccf.h"
 #include "ConfigReader.h"
 //СЮДА МОЖНО ВСТАВЛЯТЬ ФУНКЦИИ ИЛИ ИНКЛЮДЫ С НИМИ 
 
@@ -103,9 +104,16 @@ int main(int argc, char *argv[])
     //std::vector<float> sumpuls=pulse.GetSumPeriodsVec();
 
     // СЮДА МОЖНО ДОБАВЛЯТЬ КОД ДЛЯ КРОСС-КОРРЕЛЯЦИИ
+    Cor cor;
+    Skkf skkf;
+    // Cor::Tpl tpl;
+    // ConfigParam conf;
     
+    cor.ccf(finPulse, conf.rawdata_dir, conf.output_dir, conf.runs[iPack], conf.tplfile, conf.utccorr);
     
   }
-  std::cout<<"работа программы успешно завершена"<<std::endl;
+  std::cout<<"######################################"<<std::endl;
+  std::cout<<"# работа программы успешно завершена #"<<std::endl;
+  std::cout<<"######################################"<<std::endl;  
   return 0;
 }

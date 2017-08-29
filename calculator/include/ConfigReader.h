@@ -3,6 +3,8 @@
 struct ConfigParam{
   std::string rawdata_dir;
   std::string output_dir;
+  std::string maskfile; // добавлено мной 17.08
+  std::string tplfile; // добавлено мной 28.08
   bool doRemoveSpikes;
   bool doFRfiltering;
   bool getDynSpectrum;
@@ -51,6 +53,8 @@ ConfigParam ReadConfig(std::string cname)
     //    std::cout<<confParam<<std::endl;
     if (confParam=="inputDir") flist>>output.rawdata_dir;
     else if (confParam=="outputDir") flist>>output.output_dir;
+    else if (confParam=="channelMask") flist>>output.maskfile; // добавлено мной 17.08
+    else if (confParam=="tplFile") flist>>output.tplfile; // добавлено мной 28.08
     else if (confParam=="startFileNumber") flist>>startFileNumber;
     else if (confParam=="nRuns") flist>>nFiles;
     else if (confParam=="removeSpikes") flist>>sRemoveSpikes;
