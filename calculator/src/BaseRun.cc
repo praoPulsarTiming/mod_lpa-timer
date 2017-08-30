@@ -121,6 +121,8 @@ BaseRun::~BaseRun()
 
 int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir)
 {
+  int retVal=1;
+  
   fPerChannelSignal.clear();
   
   fRunID=runID;
@@ -173,11 +175,14 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       if (k==5) fNumpuls=number;
       if (k==7) fNumpointwin=number;
 
+      std::string sbuf;
       if (k==1) {
 	for (int ibuf=13; ibuf<20; ibuf++){
-	  fPsrname+=buffer[ibuf];
+	  sbuf+=buffer[ibuf];
 	}
+	fPsrname=sbuf;
       }
+      
 
       /////////////////////////////
       //read cumchan
@@ -268,9 +273,9 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       float ampl=pulseToFloat(number,fTau);
       int iFreq=(((ipos-sizeHeader)/lengthData-1)%512);
       if (iFreq!=513) {
-	//std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<
+	//      std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<
 	fPerChannelSignal[iFreq].SetSignal(iPointAbs,ampl);
-	//	std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<"    "<<fPerChannelSignal[iFreq].GetSignal(iPointAbs)<<std::endl;
+	//	std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<"   "<<number<<"    "<<fPerChannelSignal[iFreq].GetSignal(iPointAbs)<<std::endl;
       }
       if (iFreq==511){
 	iPoint++;
@@ -305,7 +310,7 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   delete fileContents;
   delete buffer;
   std::cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"<<std::endl;
-  return 0;
+  return retVal;
 
 }
   

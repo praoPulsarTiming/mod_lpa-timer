@@ -3,7 +3,7 @@
 
 PulseExtractor::PulseExtractor()
 {
-}
+} 
 
 PulseExtractor::~PulseExtractor()
 {
@@ -378,6 +378,7 @@ int PulseExtractor::removeSpikes(float nVar)
       median=sumSigRef.GetSignalMedian(0, i+5);
       variance=sumSigRef.GetSignalVariance(0, i+5);
     }
+    if (variance==0) continue;
     //    std::cout<<"spikeFinder:   "<<i<<"   "<<median<<"      "<<variance<<"       "<<sumSigRef.GetSignal(i)<<std::endl;
     if (fabs(sumSigRef.GetSignal(i)-median)/variance > nVar) {
       //      std::cout<<"FOUND SPIKE"<<std::endl;
@@ -419,17 +420,12 @@ int PulseExtractor::frequencyFilter(float nVar)
       variance=buf.GetSignalVariance(i-5,100000);
     }
     //    std::cout<<"freqCleaner:  "<<med<<"     "<<variance<<"     "<<buf.GetSignal(i)<<std::endl;
+    if (variance==0) continue;
     if (fabs(buf.GetSignal(i)-med)/variance>nVar) {
       //     std::cout<<"SPIKE FOUND"<<std::endl;
       fChannelMask[i]=0;
     }
   }
-  int nActive=0;
-  for (int i=0; i<fNChan; i++){
-    if (fChannelMask[i]!=0) nActive++;
-  }
-  fNChanAfterMask=nActive;
-  
   return 1;
 }
 
@@ -444,12 +440,25 @@ int PulseExtractor::FillMaskFRweights()
     frmean+=fBaseRun->GetFreqResponse(i);
     nchan++;
   }
+  
+  if (frmean==0||nchan==0) return 0;
   frmean=frmean/nchan;
   for (int i=0; i<fBaseRun->GetNChannels(); i++){
     if (fChannelMask[i]==0) continue;
+    if (fBaseRun->GetFreqResponse(i)==0) {
+      fChannelMask[i]=0;
+      continue;
+    }
     frweight=pow(fBaseRun->GetFreqResponse(i)/frmean,-1);
     fChannelMask[i]=frweight;
   }
+
+  int nActive=0;
+  for (int i=0; i<fNChan; i++){
+    if (fChannelMask[i]!=0) nActive++;
+  }
+  fNChanAfterMask=nActive;
+    
   return 1;
 }
 
