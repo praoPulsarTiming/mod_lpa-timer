@@ -386,6 +386,7 @@ int PulseExtractor::removeSpikes(float nVar)
       fSpikeMask[i]=0;
       //      std::cout<<"FOUND SPIKE"<<std::endl;
       for (int y=0; y<fBaseRun->GetNChannels(); y++){
+	if (fChannelMask[y]==0) continue;
 	fBaseRun->GetChannelSignal(y)->SetSignal(i,pow(fChannelMask[y],-1)*median/fBaseRun->GetNChannels());
       }
       //      std::cout<<" after filter:    "<<fBaseRun->GetChannelSignal(100)->GetSignal(i)<<std::endl;
