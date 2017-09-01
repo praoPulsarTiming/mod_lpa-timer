@@ -238,8 +238,9 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	//	fNsec=readNumber(buffer,23,7,0);
       }
     }   
-
+  
   fNPoints=fNumpuls*fNumpointwin;
+  if (fSumchan==1) fNPoints=fNumpointwin;
   fDuration=fNPoints*fTau;
   
   //  char tmp[100];
@@ -251,10 +252,8 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   //	   <<"     fre0: "<<fFreq0<<"   freq511: "<<fFreq511<<std::endl;
   // int lengthData= 8*sizeof(uint32_t);
   int lengthData = sizeof(uint32_t);
-  // lengthData=4;
   char* fileContents;
   fileContents = new char[lengthData];
-  //      std::cout<<"length: "<<lengthData<<std::endl;
   unsigned int number=0;
   int ipos;
   int iPoint=0;
@@ -286,9 +285,9 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	iPointAbs++;
       }	
     }
-  for (int i=0; i<fNPoints; i++){
+  //  for (int i=0; i<fNPoints; i++){
     //  std::cout<<"test: "<<i<<"  "<<fPerChannelSignal[18].GetSignal(i)<<std::endl;
-  }
+  //  }
   
   for (int i=0; i<512; i++){
     fFreqResponse.push_back(fPerChannelSignal[i].GetSignalMean(0,1000000));

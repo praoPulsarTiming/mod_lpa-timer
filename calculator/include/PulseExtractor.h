@@ -78,6 +78,7 @@ class PulseExtractor : BaseRun
   
   int RemoveSpikes(float nVar);   // удалить шумовые импульсы, частотные каналы складываются с dm=0, выбросы > nVar*sigma заменяются на медианное значение подложки
   int CleanFrequencyResponse(float nVar);  //удалить зашемленные частоты, выбросы на АЧХ по модулю > nVar*sigma добавляются в маску с весом 0
+  void NormaliseToUnity(bool fDo) {fDoNormToUnity=fDo;}
   
 
  private:
@@ -87,6 +88,7 @@ class PulseExtractor : BaseRun
   SignalContainer fCompensatedSignalSum;
   std::vector<SignalContainer> fDynamicSpectrum;
   SumProfile fSumProfile;
+  int normToUnity();
   int compensateDM();
   int sumPeriods();
   int sumPerChannelPeriods();
@@ -99,6 +101,7 @@ class PulseExtractor : BaseRun
   std::vector<float> fChannelMask;
 
   bool fIsDynSpecAvailable;
+  bool fDoNormToUnity;
   
   std::vector<int> fSpikeMask;
 

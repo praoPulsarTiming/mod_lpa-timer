@@ -32,8 +32,6 @@ int main(int argc, char *argv[])
   
   ConfigParam conf=ReadConfig(configName);
 
-  //  std::cout<<"output in:   "<<conf.output_dir<<std::endl;
-
   // создаем контейнер для данных сеанса
   BaseRun br;
   //loop over files
@@ -49,7 +47,7 @@ int main(int argc, char *argv[])
     //  считываем маску
     pulse.ReadMask("examples/channel_mask.dat");
 
-    
+    pulse.NormaliseToUnity(!conf.useTrueNorm);
     pulse.FillMaskFRweights();
 
     // фильтры на данный момент отсутствуют (13.07.17)
@@ -88,7 +86,7 @@ int main(int argc, char *argv[])
     
     // суммируем периоды для компенсированных данных
     pulse.SumPeriods();
-
+    
     // далее получаем данные
     // получение структуры суммарного импульса
     SumProfile finPulse=pulse.GetSumProfile();
@@ -104,11 +102,10 @@ int main(int argc, char *argv[])
     //std::vector<float> sumpuls=pulse.GetSumPeriodsVec();
 
     // СЮДА МОЖНО ДОБАВЛЯТЬ КОД ДЛЯ КРОСС-КОРРЕЛЯЦИИ
+
     Cor cor;
     Skkf skkf;
-    // Cor::Tpl tpl;
-    // ConfigParam conf;
-    
+     
     cor.ccf(finPulse, conf.rawdata_dir, conf.output_dir, conf.runs[iPack], conf.tplfile, conf.utccorr);
     
   }
