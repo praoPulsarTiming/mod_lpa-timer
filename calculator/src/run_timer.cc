@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
   for (int iPack=0; iPack<floor(conf.runs.size()); iPack++){
 
     // считываем данные сеанса
-    br.ReadRAWData(conf.runs[iPack], conf.rawdata_dir, conf.output_dir, conf.print_data);
+    br.ReadRAWData(conf.runs[iPack], conf.rawdata_dir, conf.output_dir, conf.print_data, conf.pgran);
 
     // создаем объект класса для обработки
     PulseExtractor pulse(&br);

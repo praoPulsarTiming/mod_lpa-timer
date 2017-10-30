@@ -121,7 +121,7 @@ BaseRun::~BaseRun()
 {
 }
 
-int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir, bool printData)
+int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir, bool printData, int printGranularity)
 {
   fPrintData=printData;
   
@@ -293,8 +293,8 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	//      std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<
 	fPerChannelSignal[iFreq].SetSignal(iPointAbs,ampl);
 	avgAmpl[iFreq]+=ampl;
-	if (iPointAbs%10==0) {
-	  textDataStream<<std::setprecision(6)<<std::setw(15)<<std::left<<avgAmpl[iFreq]/10;
+	if ((iPointAbs+1)%printGranularity==0) {
+	  textDataStream<<std::setprecision(6)<<std::setw(15)<<std::left<<avgAmpl[iFreq]/printGranularity;
 	  avgAmpl[iFreq]=0;
 	  
 	}
@@ -306,8 +306,8 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	  iPoint=0;
 	  iPeriod++;
 	}
+	if (fPrintData&&(iPointAbs+1)%printGranularity==0) textDataStream<<std::endl<<std::setprecision(6)<<std::setw(15)<<std::left<<iPointAbs*fTau;
 	iPointAbs++;
-	if (fPrintData&&iPointAbs%10==0) textDataStream<<std::endl<<std::setprecision(6)<<std::setw(15)<<std::left<<iPointAbs*fTau;
       }	
     }
   //  for (int i=0; i<fNPoints; i++){
