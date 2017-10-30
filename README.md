@@ -1,8 +1,8 @@
-# lpa-timer
+# mod_lpa-timer
 
 Загрузка программы:
 
->git clone https://github.com/praoPulsarTiming/lpa-timer
+>git clone https://github.com/praoPulsarTiming/mod_lpa-timer
 
 ИНСТРУКЦИИ ДЛЯ МОДУЛЯ ОБРАБОТКИ ДАННЫХ И ВЫЧИСЛЕНИЙ "calculator"
 
@@ -10,9 +10,9 @@
 
 >make
 
-отредактировать (можно переименовать) конфиг timer_0656.cfg
+отредактировать (можно переименовать) конфиг timer_1133.cfg
 
->./run-timer.exe -f timer_0656.cfg
+>./run-timer.exe -f timer_1133.cfg
 
 
 в случае если нужно залить изменения:
