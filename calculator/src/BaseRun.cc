@@ -113,14 +113,18 @@ BaseRun::BaseRun()
   fDatatype="I";
   fNpol=1;
   fNChannels=512;
+
+  fPrintData=false;
 }
 
 BaseRun::~BaseRun()
 {
 }
 
-int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir)
+int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir, bool printData)
 {
+  fPrintData=printData;
+  
   int retVal=1;
   
   fPerChannelSignal.clear();
@@ -261,9 +265,23 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
   int iFreq=0;
   int iPeriod=0;
 
+  std::ofstream textDataStream;
+  if (fPrintData) {
+    char tmp[100];
+    sprintf(tmp,"%s.data",runID.c_str());
+    textDataStream.open(tmp);
+    textDataStream<<std::setw(15)<<std::left<<"start time";     
+  }
+  
   for (int i=0; i<512; i++){
     fPerChannelSignal.push_back(SignalContainer(fNPoints,0,fDuration));
+    if (fPrintData) textDataStream<<std::setprecision(6)<<"f="<<std::setw(13)<<std::left<<fFreqFirst+i*(-fFreqFirst+fFreqLast)/512;
   }
+
+  if (fPrintData) textDataStream<<std::endl<<std::setprecision(6)<<std::setw(15)<<std::left<<iPointAbs*fTau;
+
+  float avgAmpl[512]={0};
+
   while(data.good())
     {
       data.read((char *) &number,lengthData);
@@ -274,6 +292,12 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
       if (iFreq!=513) {
 	//      std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<
 	fPerChannelSignal[iFreq].SetSignal(iPointAbs,ampl);
+	avgAmpl[iFreq]+=ampl;
+	if (iPointAbs%10==0) {
+	  textDataStream<<std::setprecision(6)<<std::setw(15)<<std::left<<avgAmpl[iFreq]/10;
+	  avgAmpl[iFreq]=0;
+	  
+	}
 	//	std::cout<<iFreq<<"    "<<iPointAbs<<"    "<<ampl<<"   "<<number<<"    "<<fPerChannelSignal[iFreq].GetSignal(iPointAbs)<<std::endl;
       }
       if (iFreq==511){
@@ -281,8 +305,9 @@ int BaseRun::ReadRAWData(std::string runID, std::string rawdata_dir, std::string
 	if (iPoint%fNumpointwin==0) {
 	  iPoint=0;
 	  iPeriod++;
-	}	      
+	}
 	iPointAbs++;
+	if (fPrintData&&iPointAbs%10==0) textDataStream<<std::endl<<std::setprecision(6)<<std::setw(15)<<std::left<<iPointAbs*fTau;
       }	
     }
   //  for (int i=0; i<fNPoints; i++){

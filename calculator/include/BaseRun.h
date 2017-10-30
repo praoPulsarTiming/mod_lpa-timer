@@ -17,7 +17,7 @@ class BaseRun
   BaseRun();
   ~BaseRun();
   
-  int ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir);
+  int ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir, bool print_data);
 
   std::string GetRunID() {return fRunID;}
   
@@ -62,6 +62,8 @@ class BaseRun
   float GetFreqResponse(int iband) {return fFreqResponse[iband];} 
   
  private:
+  bool fPrintData;
+  
   std::string fTelcode;
   std::string fObscode;
   std::string fRtype;

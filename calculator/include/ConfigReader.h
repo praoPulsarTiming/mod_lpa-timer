@@ -11,6 +11,7 @@ struct ConfigParam{
   bool getIndImpulses;
   bool getFR;
   bool useTrueNorm;
+  bool print_data;
   float utccorr;
   float nVarFR;
   float nVarSpike;
@@ -45,9 +46,10 @@ ConfigParam ReadConfig(std::string cname)
   bool bGetIndImpulses=false;
   bool bGetFR=false;
   bool bKeepNorm=true;
+  bool bPrintData=false;
   float utccorr;
   std::string sRemoveSpikes, sFRfilter;
-  std::string sGetDynSpectrum, sGetIndImpulses, sGetFR, sKeepNorm;
+  std::string sGetDynSpectrum, sGetIndImpulses, sGetFR, sKeepNorm, sPrintData;
   float utccor;
   float nVarFR, nVarSpike;
   flist>>confParam;
@@ -68,6 +70,7 @@ ConfigParam ReadConfig(std::string cname)
     else if (confParam=="SpikeCleaningCut") flist>>nVarSpike;
     else if (confParam=="useTrueNormalisation") flist>>sKeepNorm;
     else if (confParam=="utcCorrection") flist>>utccorr;
+    else if (confParam=="printData") flist>>sPrintData;
     flist.getline(tmp,100,'\n');
     flist>>confParam;
   }
@@ -81,6 +84,7 @@ ConfigParam ReadConfig(std::string cname)
   err+=convertStringParam(sGetIndImpulses, &bGetIndImpulses);
   err+=convertStringParam(sGetFR, &bGetFR);
   err+=convertStringParam(sKeepNorm, &bKeepNorm);
+  err+=convertStringParam(sPrintData, &bPrintData);
   
   output.doRemoveSpikes=bRemoveSpikes;
   output.doFRfiltering=bFRfilter;
@@ -90,6 +94,7 @@ ConfigParam ReadConfig(std::string cname)
   output.nVarFR=nVarFR;
   output.nVarSpike=nVarSpike;
   output.useTrueNorm=bKeepNorm;
+  output.print_data=bPrintData;
   
   std::string rID;
   int runCounter=0;
