@@ -72,7 +72,7 @@ ConfigParam ReadConfig(std::string cname)
     else if (confParam=="useTrueNormalisation") flist>>sKeepNorm;
     else if (confParam=="utcCorrection") flist>>utccorr;
     else if (confParam=="printData") flist>>sPrintData;
-    else if (confParam=="prinGranularity")flist>>output.pgran;
+    else if (confParam=="outputGranularity")flist>>output.pgran;
     flist.getline(tmp,100,'\n');
     flist>>confParam;
   }
