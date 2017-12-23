@@ -61,6 +61,8 @@ class PulseExtractor : BaseRun
   int PrintChannelSumProfile(std::string outdir); // записать суммарный профиль для каждого частотного канала в файл с именем outdir/bands_<номер сеанса>.prf
   int PrintCompensatedImpulses(std::string outdir);  //записать в файл набор компенсированных импульсов до fBasRun->GetNumpuls() 
 
+  int PrintData(std::string outdir, int printGran);
+  
   SumProfile GetSumProfile() {return fSumProfile;} // получить структуру, описанную в начале этог файла
 
   std::vector<float> GetSumPeriodsVec(); // получить суммарный профиль в виде вектора
@@ -89,7 +91,7 @@ class PulseExtractor : BaseRun
   std::vector<SignalContainer> fDynamicSpectrum;
   SumProfile fSumProfile;
   int normToUnity();
-  int compensateDM();
+  int compensateDM(bool useChannelMask, SignalContainer* output);
   int sumPeriods();
   int sumPerChannelPeriods();
   int fillSumProfile();

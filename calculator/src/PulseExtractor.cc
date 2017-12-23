@@ -31,7 +31,7 @@ PulseExtractor::PulseExtractor(BaseRun* run)
 }
  
 
-int PulseExtractor::compensateDM()
+int PulseExtractor::compensateDM(bool useChannelMask, SignalContainer* output)
 {
   std::cout<<"компенсация дисперсионного запаздывания"<<std::endl;
 
@@ -46,7 +46,7 @@ int PulseExtractor::compensateDM()
     float bico=0;
     for (int y=0; y<fBaseRun->GetNChannels(); y++) {
       int iChan=(fBaseRun->GetNChannels()-1)-y;
-      if (fChannelMask[iChan]==0) continue;
+      if (useChannelMask&&fChannelMask[iChan]==0) continue;
       //calculate delay wrt 511th for particular freq[511-y]
       float dT=4.6*(-pow(fBaseRun->GetWLLast(),2)+pow(fBaseRun->GetWLLast()+y*fDL,2))*fDM*0.001; //covert to ms
       //calculate residual difference to nearest positive side pulse
@@ -55,8 +55,10 @@ int PulseExtractor::compensateDM()
       float delta=dTnearest*pow(fBaseRun->GetTau(),-1);
 
       //define normalisation based on channel mask
-      float normFactor=fChannelMask[iChan];
-
+      float normFactor;
+      if (useChannelMask) normFactor=fChannelMask[iChan];
+      else normFactor=1;
+      
       //channel summation
       float bico1, bico2;
       if (!fIsDynSpecAvailable||fBaseRun->GetSumchan()==1){
@@ -73,9 +75,9 @@ int PulseExtractor::compensateDM()
       bico+=lowerBinFrac*bico1+upperBinFrac*bico2;
     }
 
-    fCompensatedSignal.SetSignal(i,bico/fNChanAfterMask);
+    output->SetSignal(i,bico/fNChanAfterMask);
       //fBaseRun->GetNChannels();
-    fCompensatedSignalSum.SetSignal(i,bico/fNChanAfterMask);
+    output->SetSignal(i,bico/fNChanAfterMask);
       //fBaseRun->GetNChannels();
   }
   return 0;
@@ -292,6 +294,44 @@ int PulseExtractor::PrintChannelSumProfile(std::string dirname)
   return 1;
 }
 
+int PulseExtractor::PrintData(std::string dirname, int printGranularity)
+{
+  std::ofstream textDataStream;
+  char tmp[100];
+  sprintf(tmp,"%s/%s.data",dirname.c_str(),(fBaseRun->GetRunID()).c_str());
+  textDataStream.open(tmp);
+  textDataStream<<std::setw(15)<<std::left<<"start time";   
+  
+  for (int i=0; i<512; i++){
+    textDataStream<<std::setprecision(6)<<"f="<<std::setw(13)<<std::left<<fBaseRun->GetFreqFirst()+i*(-fBaseRun->GetFreqFirst()+fBaseRun->GetFreqLast())/512;
+  }
+
+  textDataStream<<std::setprecision(6)<<std::setw(15)<<std::left<<"comp. signal";
+  
+  SignalContainer outputNoFilters(fBaseRun->GetNPoints(),0,fBaseRun->GetNPoints());
+  compensateDM(false, &outputNoFilters);
+
+  float avgAmpl[fBaseRun->GetNChannels()]={0};
+  float avgSum=0;
+  
+  for (int iPoint=0; iPoint<fBaseRun->GetNPoints(); iPoint++){
+    if ((iPoint+1)%printGranularity==0) textDataStream<<std::endl<<std::setprecision(6)<<std::setw(15)<<std::left<<iPoint*fBaseRun->GetTau();
+    avgSum+=outputNoFilters.GetSignal(iPoint);
+    for (int iFreq=0; iFreq<fBaseRun->GetNChannels(); iFreq++){
+      avgAmpl[iFreq]+=fBaseRun->GetChannelSignal(iFreq)->GetSignal(iPoint);
+      if ((iPoint+1)%printGranularity==0) {
+	textDataStream<<std::setprecision(6)<<std::setw(15)<<std::left<<avgAmpl[iFreq]/printGranularity;
+	avgAmpl[iFreq]=0;
+      }
+    }
+    if ((iPoint+1)%printGranularity==0){
+      textDataStream<<std::setprecision(6)<<std::setw(15)<<std::left<<avgSum/printGranularity;
+      avgSum=0;
+    }
+  }
+  return 1;
+}
+
 int PulseExtractor::PrintCompensatedImpulses(std::string dirname)
 {
   std::ofstream sumProfileStream;
@@ -316,7 +356,7 @@ int PulseExtractor::PrintCompensatedImpulses(std::string dirname)
 
 int PulseExtractor::DoCompensation()
 {
-  compensateDM();
+  compensateDM(true, &fCompensatedSignal);
   return 1;
 }
 

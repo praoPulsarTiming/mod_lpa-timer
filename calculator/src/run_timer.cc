@@ -39,11 +39,14 @@ int main(int argc, char *argv[])
   for (int iPack=0; iPack<floor(conf.runs.size()); iPack++){
 
     // считываем данные сеанса
-    br.ReadRAWData(conf.runs[iPack], conf.rawdata_dir, conf.output_dir, conf.print_data, conf.pgran);
+    br.ReadRAWData(conf.runs[iPack], conf.rawdata_dir, conf.output_dir);
 
     // создаем объект класса для обработки
     PulseExtractor pulse(&br);
 
+    //    if (conf.print_data)
+    pulse.PrintData(conf.output_dir,conf.pgran);
+    
     //  считываем маску
     pulse.ReadMask("examples/channel_mask.dat");
 

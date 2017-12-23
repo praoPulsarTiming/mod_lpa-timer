@@ -17,7 +17,7 @@ class BaseRun
   BaseRun();
   ~BaseRun();
   
-  int ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir, bool print_data, int printGranularity);
+  int ReadRAWData(std::string runID, std::string rawdata_dir, std::string output_dir);
 
   std::string GetRunID() {return fRunID;}
   
