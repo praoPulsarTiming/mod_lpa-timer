@@ -311,7 +311,7 @@ int PulseExtractor::PrintData(std::string dirname, int printGranularity)
   SignalContainer outputNoFilters(fBaseRun->GetNPoints(),0,fBaseRun->GetNPoints());
   compensateDM(false, &outputNoFilters);
 
-  float avgAmpl[fBaseRun->GetNChannels()]={0};
+  float avgAmpl[1000]={0};
   float avgSum=0;
   
   for (int iPoint=0; iPoint<fBaseRun->GetNPoints(); iPoint++){
